@@ -1,144 +1,93 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jerusalém em Ruínas — Jeremias 52</title>
-  <style>
-    body {
-      margin: 0;
-      background: linear-gradient(#2c3e50, #34495e);
-      font-family: 'Trebuchet MS', sans-serif;
-      color: #ecf0f1;
-      text-align: center;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: #95a5a6;
-      border: 4px solid #7f8c8d;
-    }
-    #info {
-      padding: 15px;
-      background: rgba(44, 62, 80, 0.9);
-      box-shadow: 0 2px 10px rgba(0,0,0,.4);
-    }
-    #info h1 {
-      font-size: 1.8em;
-      color: #f1c40f;
-    }
-    #info button {
-      background: #27ae60;
-      color: #fff;
-      border: none;
-      padding: 10px 15px;
-      margin: 5px;
-      border-radius: 8px;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    #info button:hover {
-      background: #2ecc71;
-    }
-    .block-label {
-      position: absolute;
-      font-weight: bold;
-      color: #2c3e50;
-      text-align: center;
-      pointer-events: none;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cidade Firme — Jeremias 52</title>
+<style>
+  body { margin:0; background:url('https://i.ibb.co/jkH0RJy/jeremias52-bg.jpg') center/cover no-repeat; color:#ecf0f1; font-family:'Trebuchet MS',sans-serif; display:flex; height:100vh; overflow:hidden; }
+  #game-area { flex:3; position:relative; text-align:center; }
+  #sidebar { flex:1; background:rgba(47,54,64,0.85); padding:20px; box-sizing:border-box; overflow-y:auto; }
+  h1 { color:#fbc531; text-shadow:1px 1px 2px #000; }
+  canvas { background:transparent; display:block; margin:0 auto; border:4px solid #353b48; }
+  #questions { margin-top:10px; }
+  button { background:#00a8ff; color:#fff; border:none; padding:10px 15px; margin:5px; border-radius:8px; cursor:pointer; }
+  button:hover { background:#0097e6; }
+  .block-label { position:absolute; font-weight:bold; color:#2c3e50; text-align:center; pointer-events:none; text-shadow:1px 1px 2px #fff; }
+  #ranking h2 { color:#f5f6fa; margin-top:0; }
+  #ranking ol { padding-left:20px; }
+  #player-info input { width:100%; padding:8px; margin:5px 0; border:none; border-radius:5px; }
+  #modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); color:#fff; display:none; justify-content:center; align-items:center; flex-direction:column; z-index:1000; }
+  #modal button { background:#e84118; color:#fff; padding:10px 20px; border:none; border-radius:8px; font-size:1.2em; cursor:pointer; }
+</style>
 </head>
 <body>
-  <div id="info">
-    <h1>Jerusalém em Ruínas — Jeremias 52</h1>
-    <p>Construa a cidade: blocos <strong>da Palavra</strong> trazem firmeza, blocos <strong>do homem</strong> trazem instabilidade. O destino de Jerusalém depende da base.</p>
-    <button id="dropSpirit">Adicionar bloco da Palavra</button>
-    <button id="dropHuman">Adicionar bloco humano</button>
-    <p id="status"></p>
-  </div>
+<div id="game-area">
+  <h1>Cidade Firme — Jeremias 52</h1>
   <canvas id="world"></canvas>
-
-  <audio id="sound-drop" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-  <audio id="sound-fall" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
-  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script>
-    const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
-
-    const engine = Engine.create();
-    const world = engine.world;
-
-    const canvas = document.getElementById('world');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight * 0.7;
-
-    const render = Render.create({
-      canvas: canvas,
-      engine: engine,
-      options: { width: canvas.width, height: canvas.height, wireframes: false, background: '#95a5a6' }
-    });
-
-    Render.run(render);
-    Runner.run(Runner.create(), engine);
-
-    const ground = Bodies.rectangle(canvas.width / 2, canvas.height - 20, canvas.width, 40, { isStatic: true, render: { fillStyle: '#7f8c8d' } });
-    Composite.add(world, ground);
-
-    const labels = [];
-    const frases = [
-      'Obediência',
-      'Fé',
-      'Orgulho',
-      'Idolatria',
-      'Esperança',
-      'Medo',
-      'Justiça',
-      'Corrupção'
-    ];
-
-    function addBlock(type) {
-      const x = canvas.width / 2 + (Math.random() * 200 - 100);
-      const frase = frases[Math.floor(Math.random() * frases.length)];
-      const block = Bodies.rectangle(x, 50, 100, 50, {
-        restitution: type === 'spirit' ? 0.05 : 0.3,
-        friction: type === 'spirit' ? 1.0 : 0.2,
-        render: { fillStyle: type === 'spirit' ? '#27ae60' : '#c0392b' }
-      });
-      Composite.add(world, block);
-
-      // create label
-      const label = document.createElement('div');
-      label.className = 'block-label';
-      label.innerText = frase;
-      document.body.appendChild(label);
-      labels.push({ body: block, element: label });
-
-      document.getElementById('status').textContent = type === 'spirit' ? 'Um bloco da Palavra foi adicionado — a base está firme!' : 'Um bloco humano foi adicionado — a cidade treme!';
-      document.getElementById('sound-drop').play();
-    }
-
-    document.getElementById('dropSpirit').addEventListener('click', () => addBlock('spirit'));
-    document.getElementById('dropHuman').addEventListener('click', () => addBlock('human'));
-
-    Events.on(engine, 'afterUpdate', function() {
-      labels.forEach(l => {
-        l.element.style.left = (l.body.position.x - 40) + 'px';
-        l.element.style.top = (l.body.position.y - 20) + 'px';
-      });
-
-      const allBodies = Composite.allBodies(world);
-      let fallen = false;
-      allBodies.forEach(body => {
-        if (!body.isStatic && body.position.y > canvas.height - 50) {
-          fallen = true;
-        }
-      });
-      if (fallen) {
-        document.getElementById('status').textContent = '⚠️ A cidade ruiu como em Jeremias 52 — sem obediência, o juízo chegou.';
-        document.getElementById('sound-fall').play();
-      }
-    });
-  </script>
+  <div id="questions">
+    <p id="question-text">Responda para construir sua cidade:</p>
+    <div id="answers"></div>
+  </div>
+</div>
+<div id="sidebar">
+  <div id="player-info">
+    <h2>Jogador</h2>
+    <input id="player-name" placeholder="Nome" />
+    <input id="player-role" placeholder="Cargo" />
+  </div>
+  <div id="ranking">
+    <h2>Ranking</h2>
+    <ol id="ranking-list">
+      <li>---</li>
+      <li>---</li>
+      <li>---</li>
+    </ol>
+  </div>
+  <p>Pontos: <span id="points">0</span></p>
+</div>
+<div id="modal">
+  <h1>O Muro caiu!</h1>
+  <p>Jeremias 52 nos lembra: sem fundamentos espirituais, a cidade cai.</p>
+  <button onclick="reiniciar()">Reiniciar</button>
+</div>
+<audio id="sound-drop" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="sound-fall" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/14/audio_2634b68e7f.mp3?filename=battle-of-jerusalem-11143.mp3" autoplay loop></audio>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+<script>
+const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
+const engine = Engine.create();
+const world = engine.world;
+const canvas = document.getElementById('world');
+canvas.width = window.innerWidth*0.7;
+canvas.height = window.innerHeight*0.7;
+const render = Render.create({ canvas:canvas, engine:engine, options:{ width:canvas.width, height:canvas.height, wireframes:false, background:'transparent' } });
+Render.run(render);
+Runner.run(Runner.create(), engine);
+const ground = Bodies.rectangle(canvas.width/2, canvas.height-20, canvas.width, 40, { isStatic:true, render:{ sprite:{ texture:'https://i.ibb.co/MfrCG7X/stone-ground.png', xScale:1, yScale:1 } } });
+Composite.add(world, ground);
+let points=0; let labels=[]; let gameOver=false;
+const perguntas=[
+  {q:"Você recebeu uma promoção, o que faz?", options:[{txt:"Agradece a Deus e trabalha com excelência", type:"spirit"},{txt:"Esquece de Deus e confia só no esforço", type:"human"}]},
+  {q:"Um amigo precisa de ajuda financeira", options:[{txt:"Ora e ajuda no que pode", type:"spirit"},{txt:"Ignora e deixa para outro", type:"human"}]},
+  {q:"Você tem uma grande decisão familiar", options:[{txt:"Ora e busca conselhos sábios", type:"spirit"},{txt:"Decide no impulso sem oração", type:"human"}]}
+];
+function mostrarPergunta(){const container=document.getElementById('answers');container.innerHTML='';const p=perguntas[Math.floor(Math.random()*perguntas.length)];document.getElementById('question-text').textContent=p.q;p.options.forEach(opt=>{const btn=document.createElement('button');btn.textContent=opt.txt;btn.onclick=()=>responder(opt.type);container.appendChild(btn);});}
+function responder(type){if(gameOver)return;addBlock(type);if(type==='spirit')points+=10;else points+=5;document.getElementById('points').textContent=points;salvarNoRanking();mostrarPergunta();}
+function addBlock(type){const x=canvas.width/2+(Math.random()*200-100);const block=Bodies.rectangle(x,50,100,50,{restitution:0.05,friction:type==='spirit'?1.0:0.2,render:{ sprite:{ texture:type==='spirit'?'https://i.ibb.co/4YcJPJ8/brick-strong.png':'https://i.ibb.co/QNS2FfS/brick-weak.png', xScale:1,yScale:1 }}});Composite.add(world,block);const label=document.createElement('div');label.className='block-label';label.textContent=type==='spirit'?'Espiritual':'Humano';document.body.appendChild(label);labels.push({body:block,element:label,type});document.getElementById('sound-drop').play();}
+function salvarNoRanking(){const nome=document.getElementById('player-name').value||'Anônimo';const cargo=document.getElementById('player-role').value||'';const data=new Date().toLocaleDateString('pt-BR');
+// Envio para Google Apps Script
+fetch('https://script.google.com/macros/s/AKfycbx4nhEe4wsN61bdr3k2GKcYYLk_7LjeG00te9eJs4tlerrIILTfZKPcyeIFqp2C9_n3/exec
+  mode:'no-cors',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({ Jogador:nome, Cargo:cargo, Data:data, Pontos:points })
+});
+// Ranking local
+const ranking=[{nome:nome+(cargo?" ("+cargo+")":""),pts:points}];ranking.sort((a,b)=>b.pts-a.pts);const top3=ranking.slice(0,3);const list=document.getElementById('ranking-list');list.innerHTML='';top3.forEach(p=>{const li=document.createElement('li');li.textContent=`${p.nome}: ${p.pts}`;list.appendChild(li);});}
+function reiniciar(){window.location.reload();}
+Events.on(engine,'afterUpdate',()=>{labels.forEach(l=>{l.element.style.left=(l.body.position.x-40)+'px';l.element.style.top=(l.body.position.y-20)+'px';});if(gameOver)return;let humanBelow=labels.filter(l=>l.type==='human');humanBelow.forEach(h=>{let above=labels.filter(l=>l.body.position.y<h.body.position.y && Math.abs(l.body.position.x-h.body.position.x)<50);if(above.length>2){document.getElementById('sound-fall').play();document.getElementById('modal').style.display='flex';gameOver=true;}});});
+mostrarPergunta();
+</script>
 </body>
 </html>
