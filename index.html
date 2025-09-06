@@ -59,7 +59,6 @@
 
   <div id="game-area">
     <h1>Cidade Firme — Jeremias 52</h1>
-    <!-- canvas responsivo; tamanho será ajustado por script -->
     <canvas id="world" aria-label="Área do jogo — torre"></canvas>
 
     <div id="questions">
@@ -91,7 +90,6 @@
     <p style="font-size:13px;color:#cbd5e1;margin-top:6px;">Após cada resposta os pontos são atualizados e enviados à sua planilha (quando a URL do Apps Script for configurada).</p>
   </div>
 
-  <!-- modal inicial para nome/cargo (fallback) -->
   <div id="modal-start" class="modal" role="dialog" aria-modal="true">
     <div class="card">
       <h2>Informe seu nome e cargo</h2>
@@ -103,7 +101,6 @@
     </div>
   </div>
 
-  <!-- modal fim de jogo -->
   <div id="modal-gameover" class="modal" role="alertdialog" aria-modal="true">
     <div class="card">
       <h2>O Muro caiu!</h2>
@@ -114,519 +111,356 @@
     </div>
   </div>
 
-  <!-- sons / trilha -->
   <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/14/audio_2634b68e7f.mp3?filename=battle-of-jerusalem-11143.mp3" loop preload="auto"></audio>
   <audio id="sound-drop" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
   <audio id="sound-fall" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-  <!-- Matter.js (física) -->
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
   <script>
-  /**
-   * Jogo: Cidade Firme — versão completa revisada
-   *
-   * Regras e requisitos aplicados:
-   * - perguntas coerentes (momentos que exigem ação humana e espiritual)
-   * - trilha sonora e efeitos
-   * - modal inicial para nome/cargo
-   * - modal de fim de jogo (quando muro cai) e reinício sem reload
-   * - blocos com texturas de tijolos (forte e fraco)
-   * - fundo temático (definido via CSS BODY — você pode trocar)
-   * - espaço preparado para integração com Google Apps Script (substituir SCRIPT_URL)
-   * - responsivo para mobile/tablet
-   *
-   * Observação: substitua a variável SCRIPT_URL pela URL do seu deploy do Apps Script.
-   */
+    /**
+     * Jogo: Cidade Firme — versão aprimorada
+     *
+     * Mudanças:
+     * - Perguntas dinâmicas (exemplo com API de IA)
+     * - Responsividade melhorada na lógica do canvas
+     * - `sendScoreToSheet` aprimorado para receber ranking do Apps Script
+     */
 
-  // ==========================
-  // CONFIGURAÇÕES (edite aqui)
-  // ==========================
-  const SCRIPT_URL = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL'; // <-- COLE AQUI sua URL do Apps Script (deploy Web App)
-  // Exemplo: https://script.google.com/macros/s/AKfycbw.../exec
+    // ==========================
+    // CONFIGURAÇÕES (edite aqui)
+    // ==========================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4nhEe4wsN61bdr3k2GKcYYLk_7LjeG00te9eJs4tlerrIILTfZKPcyeIFqp2C9_n3/exec';
+    const IA_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    const IA_API_KEY = 'AIzaSyCfk0xF3NOszHfws-pwQ4vDwfxvwy2PjQM';
 
-  // ID da planilha (opcional: mantido apenas para referência)
-  const SHEET_ID = '1yiLvHeOuZVma76RprjcaebSUrRDifYp9ut8-p1_twBw';
+    // ==========================
+    // Setup Matter.js
+    // ==========================
+    const { Engine, Render, Runner, Bodies, Composite, Events, Body, World } = Matter;
+    const engine = Engine.create();
+    const world = engine.world;
 
-  // ==========================
-  // Setup Matter.js
-  // ==========================
-  const { Engine, Render, Runner, Bodies, Composite, Events, Body, World } = Matter;
-  const engine = Engine.create();
-  const world = engine.world;
+    const canvas = document.getElementById('world');
+    let render = null;
+    let ground = null;
+    let points = 0;
+    let labels = [];
+    let gameOver = false;
+    let player = { name: '', role: '' };
 
-  const canvas = document.getElementById('world');
+    function setupMatterAndResize() {
+      const gameArea = document.getElementById('game-area');
+      const width = gameArea.clientWidth;
+      const height = Math.min(window.innerHeight * 0.65, 760);
+      canvas.width = width;
+      canvas.height = height;
 
-  // função para ajustar tamanho responsivo
-  function resizeCanvas() {
-    const gameArea = document.getElementById('game-area');
-    const width = Math.min(window.innerWidth * 0.95, 1100);
-    // altura ajusta responsivamente; em telas pequenas usa menor proporção
-    const height = Math.min(window.innerHeight * 0.62, 760);
-    canvas.width = width;
-    canvas.height = height;
-    if (render) {
-      Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: canvas.width, y: canvas.height } });
-      render.canvas.width = canvas.width;
-      render.canvas.height = canvas.height;
-      render.options.width = canvas.width;
-      render.options.height = canvas.height;
-    }
-  }
+      if (!render) {
+        render = Render.create({
+          canvas: canvas,
+          engine: engine,
+          options: {
+            width: width,
+            height: height,
+            wireframes: false,
+            background: 'transparent'
+          }
+        });
+        Render.run(render);
+        Runner.run(Runner.create(), engine);
+      } else {
+        Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: width, y: height } });
+        render.options.width = width;
+        render.options.height = height;
+        render.canvas.width = width;
+        render.canvas.height = height;
+      }
 
-  // Criar renderer
-  const render = Render.create({
-    canvas: canvas,
-    engine: engine,
-    options: {
-      width: 800,
-      height: 600,
-      wireframes: false,
-      background: 'transparent'
-    }
-  });
-  Render.run(render);
-  const runner = Runner.create();
-  Runner.run(runner, engine);
-
-  // redimensiona inicialmente e no resize
-  window.addEventListener('resize', () => {
-    resizeCanvas();
-  });
-  resizeCanvas();
-
-  // chão (estático)
-  let ground = Bodies.rectangle(canvas.width / 2, canvas.height - 12, canvas.width, 24, {
-    isStatic: true,
-    render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
-  });
-  Composite.add(world, ground);
-
-  // variáveis do jogo
-  let points = 0;
-  let labels = []; // { body, element, type }
-  let gameOver = false;
-  let player = { name: '', role: '' };
-
-  // perguntas mais coerentes (inclui necessidade de ação humana em momentos)
-  const perguntas = [
-    {
-      q: "Você recebeu uma oferta de ajuda financeira: o que faz?",
-      options: [
-        { txt: "Orar, avaliar e aceitar com gratidão", type: "spirit" },
-        { txt: "Aceitar sem pensar e confiar apenas no dinheiro", type: "human" }
-      ]
-    },
-    {
-      q: "Há uma oportunidade de liderar um projeto: como age?",
-      options: [
-        { txt: "Buscar conselho, orar e agir com diligência", type: "spirit" },
-        { txt: "Tomar tudo sozinho sem conselho", type: "human" }
-      ]
-    },
-    {
-      q: "Tem uma emergência médica: como procede?",
-      options: [
-        { txt: "Busca médico e ora, agindo com prudência", type: "spirit" }, // ação humana + fé
-        { txt: "Espera que passe sem ajuda", type: "human" }
-      ]
-    },
-    {
-      q: "Recebeu uma notícia injusta no trabalho: como reage?",
-      options: [
-        { txt: "Clama a Deus e procura resolver com sabedoria", type: "spirit" },
-        { txt: "Partir para confronto impulsivo", type: "human" }
-      ]
-    },
-    {
-      q: "Alguém pede envolvimento numa prática duvidosa: você…",
-      options: [
-        { txt: "Recusa, ora e escolhe o caminho da integridade", type: "spirit" },
-        { txt: "Concorda para ganhar vantagem rápida", type: "human" }
-      ]
-    },
-    {
-      q: "É hora de agir em um projeto que precisa esforço físico:",
-      options: [
-        { txt: "Faço o trabalho com dedicação (ação humana necessária)", type: "human_action" },
-        { txt: "Apenas espero que algo mude sem esforço", type: "human" }
-      ]
-    }
-  ];
-
-  // função para mostrar pergunta e opções (respostas)
-  const answersEl = document.getElementById('answers');
-  function mostrarPergunta() {
-    if (gameOver) return;
-    answersEl.innerHTML = '';
-    const p = perguntas[Math.floor(Math.random() * perguntas.length)];
-    document.getElementById('question-text').textContent = p.q;
-    p.options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.textContent = opt.txt;
-      btn.onclick = () => responder(opt.type);
-      answersEl.appendChild(btn);
-    });
-  }
-
-  // função para responder — adiciona bloco e atualiza pontos
-  function responder(type) {
-    if (gameOver) return;
-    // tipo especial 'human_action' representa ação humana positiva que normalmente deve ser feita
-    if (type === 'spirit') {
-      addBlock('spirit');
-      points += 12;
-    } else if (type === 'human_action') {
-      // ação humana necessária: ganha pontos e adiciona um bloco espiritual menor (ou neutro)
-      addBlock('spirit_small');
-      points += 8;
-    } else { // 'human'
-      addBlock('human');
-      points += 6;
-    }
-    updatePointsUI();
-    // envia pontuação atual para planilha (função preparada)
-    sendScoreToSheet();
-    mostrarPergunta();
-  }
-
-  // adiciona bloco com texturas de tijolos
-  function addBlock(type) {
-    // dimensão responsiva dos blocos
-    const W = Math.max(64, Math.min(120, Math.floor(canvas.width * 0.12)));
-    const H = Math.max(30, Math.floor(W * 0.45));
-    const x = canvas.width / 2 + (Math.random() * Math.min(280, canvas.width * 0.25) - Math.min(140, canvas.width * 0.125));
-    const y = 60;
-
-    let spriteUrl = '';
-    let options = { restitution: 0.05, friction: 0.2 };
-
-    if (type === 'spirit') {
-      spriteUrl = 'https://i.ibb.co/4YcJPJ8/brick-strong.png'; // tijolo forte
-      options.friction = 1.0;
-      options.density = 0.002;
-    } else if (type === 'spirit_small') {
-      spriteUrl = 'https://i.ibb.co/4YcJPJ8/brick-strong.png';
-      options.friction = 1.0;
-      options.density = 0.0015;
-    } else {
-      spriteUrl = 'https://i.ibb.co/QNS2FfS/brick-weak.png'; // tijolo fraco
-      options.friction = 0.18;
-      options.density = 0.003;
-      options.restitution = 0.15;
+      if (ground) {
+        Composite.remove(world, ground);
+      }
+      ground = Bodies.rectangle(width / 2, height - 12, width, 24, {
+        isStatic: true,
+        render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
+      });
+      Composite.add(world, ground);
     }
 
-    const block = Bodies.rectangle(x, y, W, H, {
-      restitution: options.restitution,
-      friction: options.friction,
-      density: options.density || 0.0025,
-      render: {
-        sprite: {
-          texture: spriteUrl,
-          xScale: W / 256, // ajustar escala presumindo imagens ~256px
-          yScale: H / 128
-        }
+    window.addEventListener('resize', setupMatterAndResize);
+    window.addEventListener('load', () => {
+      setupMatterAndResize();
+      const n = document.getElementById('player-name').value.trim();
+      if (!n) {
+        openStartModal();
       }
     });
 
-    Composite.add(world, block);
+    // ==========================
+    // Lógica do Jogo
+    // ==========================
 
-    // label DOM para mostrar texto sobre o bloco (posicionado a cada frame)
-    const label = document.createElement('div');
-    label.className = 'block-label';
-    label.textContent = (type === 'spirit' || type === 'spirit_small') ? 'Espiritual' : 'Humano';
-    document.body.appendChild(label);
-    labels.push({ body: block, element: label, type: type === 'spirit_small' ? 'spirit' : type });
-    // som
-    document.getElementById('sound-drop').currentTime = 0;
-    document.getElementById('sound-drop').play();
-  }
+    // Função para buscar perguntas da IA (usando uma API como exemplo)
+    async function fetchIAQuestions() {
+      // Exemplo de como a requisição poderia ser feita:
+      /*
+      const response = await fetch(IA_API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${IA_API_KEY}`
+          },
+          body: JSON.stringify({
+              prompt: "Gere 2 perguntas para um jogo de construção de cidade espiritual, com uma opção 'espiritual' (correta) e uma 'humana' (incorreta). O tema é Jeremias 52."
+          })
+      });
+      const data = await response.json();
+      return data.questions; // Adapte isso conforme a resposta da sua API
+      */
 
-  // atualização do UI de pontos
-  function updatePointsUI() {
-    document.getElementById('points').textContent = points;
-  }
+      // Por enquanto, usaremos uma lista de fallback para garantir que o jogo funcione
+      const perguntasFallback = [
+        { q: "Qual a melhor estratégia para resolver um conflito?", options: [{ txt: "Orar e buscar a reconciliação", type: "spirit" }, { txt: "Impor a sua vontade", type: "human" }] },
+        { q: "Como lidar com a ansiedade?", options: [{ txt: "Confiar em Deus e descansar Nele", type: "spirit" }, { txt: "Se isolar e preocupar-se", type: "human" }] }
+      ];
+      return perguntasFallback;
+    }
 
-  // checagens e fim de jogo:
-  function checkCollapse() {
-    if (gameOver) return;
+    const answersEl = document.getElementById('answers');
+    async function mostrarPergunta() {
+      if (gameOver) return;
+      answersEl.innerHTML = '';
 
-    // 1) regra: um bloco humano não suporta mais de *2* blocos espirituais sobre ele (regra do usuário)
-    // verificamos para cada bloco humano quantos blocos espirituais estão acima (y menor)
-    const humanBlocks = labels.filter(l => l.type === 'human');
-    for (const h of humanBlocks) {
-      const hb = h.body;
-      // contar espirituais que estão diretamente acima (x próximo e y menor)
-      const above = labels.filter(l => (l.type === 'spirit') && (l.body.position.y < hb.position.y) && (Math.abs(l.body.position.x - hb.position.x) < Math.max(40, hb.bounds.max.x - hb.bounds.min.x)));
-      if (above.length > 2) {
-        // colapso!
-        triggerGameOver('human_base_failure');
+      const perguntas = await fetchIAQuestions();
+      const p = perguntas[Math.floor(Math.random() * perguntas.length)];
+      document.getElementById('question-text').textContent = p.q;
+
+      // Shuffle options to not always have correct answer first
+      const shuffledOptions = p.options.sort(() => Math.random() - 0.5);
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.txt;
+        btn.onclick = () => responder(opt.type);
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function responder(type) {
+      if (gameOver) return;
+      if (type === 'spirit') {
+        addBlock('spirit');
+        points += 12;
+      } else if (type === 'human_action') {
+        addBlock('spirit_small');
+        points += 8;
+      } else {
+        addBlock('human');
+        points += 6;
+      }
+      updatePointsUI();
+      sendScoreToSheet();
+      mostrarPergunta();
+    }
+
+    function addBlock(type) {
+      const W = Math.max(64, Math.min(120, Math.floor(canvas.width * 0.12)));
+      const H = Math.max(30, Math.floor(W * 0.45));
+      const x = canvas.width / 2 + (Math.random() * Math.min(280, canvas.width * 0.25) - Math.min(140, canvas.width * 0.125));
+      const y = 60;
+
+      let spriteUrl = (type === 'spirit' || type === 'spirit_small') ? 'https://i.ibb.co/4YcJPJ8/brick-strong.png' : 'https://i.ibb.co/QNS2FfS/brick-weak.png';
+      let options = { restitution: 0.05, friction: 0.2, density: type === 'spirit' ? 0.002 : (type === 'spirit_small' ? 0.0015 : 0.003) };
+      if (type === 'spirit' || type === 'spirit_small') options.friction = 1.0;
+
+      const block = Bodies.rectangle(x, y, W, H, {
+        restitution: options.restitution,
+        friction: options.friction,
+        density: options.density,
+        render: {
+          sprite: {
+            texture: spriteUrl,
+            xScale: W / 256,
+            yScale: H / 128
+          }
+        }
+      });
+
+      Composite.add(world, block);
+      const label = document.createElement('div');
+      label.className = 'block-label';
+      label.textContent = (type === 'spirit' || type === 'spirit_small') ? 'Espiritual' : 'Humano';
+      document.body.appendChild(label);
+      labels.push({ body: block, element: label, type: type === 'spirit_small' ? 'spirit' : type });
+      document.getElementById('sound-drop').currentTime = 0;
+      document.getElementById('sound-drop').play();
+    }
+
+    function updatePointsUI() {
+      document.getElementById('points').textContent = points;
+    }
+
+    async function sendScoreToSheet(finalSave = false, reason = '') {
+      if (!SCRIPT_URL || SCRIPT_URL === 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL') {
+        console.log('Apps Script URL não configurado. Substitua SCRIPT_URL no código.');
         return;
       }
+      const nome = (player.name || document.getElementById('player-name').value || 'Anônimo');
+      const cargo = (player.role || document.getElementById('player-role').value || '');
+
+      const payload = {
+        Jogador: nome,
+        Cargo: cargo,
+        Pontos: points,
+      };
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (data.status === "success") {
+          updateRankingUI(data.ranking);
+        } else {
+          console.error("Erro do servidor:", data.message);
+        }
+
+      } catch (err) {
+        console.error('Erro ao enviar para Apps Script:', err);
+      }
     }
 
-    // 2) se qualquer corpo tiver caído para além do chão (y muito próximo da base e com velocidade/rotação grande)
-    const all = Composite.allBodies(world);
-    for (const b of all) {
-      if (!b.isStatic && b.position.y > canvas.height - 30) {
-        // pequeno buffer antes de considerar queda total: se houver muitos corpos no chão -> colapso
-        const fallenCount = all.filter(x => !x.isStatic && x.position.y > canvas.height - 40).length;
-        if (fallenCount > 4) {
-          triggerGameOver('physical_fall');
+    function updateRankingUI(ranking) {
+      const rankingList = document.getElementById('ranking-list');
+      rankingList.innerHTML = '';
+      ranking.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.Jogador}: ${entry.Pontos} pontos`;
+        rankingList.appendChild(li);
+      });
+    }
+
+    function checkCollapse() {
+      if (gameOver) return;
+      const humanBlocks = labels.filter(l => l.type === 'human');
+      for (const h of humanBlocks) {
+        const hb = h.body;
+        const above = labels.filter(l => (l.type === 'spirit') && (l.body.position.y < hb.position.y) && (Math.abs(l.body.position.x - hb.position.x) < Math.max(40, hb.bounds.max.x - hb.bounds.min.x)));
+        if (above.length > 2) {
+          triggerGameOver('human_base_failure');
+          return;
+        }
+      }
+
+      const all = Composite.allBodies(world);
+      for (const b of all) {
+        if (!b.isStatic && b.position.y > canvas.height - 30) {
+          const fallenCount = all.filter(x => !x.isStatic && x.position.y > canvas.height - 40).length;
+          if (fallenCount > 4) {
+            triggerGameOver('physical_fall');
+            return;
+          }
+        }
+      }
+
+      for (const b of all) {
+        if (!b.isStatic && Math.abs(b.angle) > Math.PI / 3) {
+          triggerGameOver('angle_failure');
           return;
         }
       }
     }
 
-    // 3) também podemos checar ângulo excessivo de corpos (torre torta)
-    for (const b of all) {
-      if (!b.isStatic && Math.abs(b.angle) > Math.PI / 3) {
-        triggerGameOver('angle_failure');
+    function triggerGameOver(reason) {
+      gameOver = true;
+      document.getElementById('sound-fall').currentTime = 0;
+      document.getElementById('sound-fall').play();
+      const modal = document.getElementById('modal-gameover');
+      modal.style.display = 'flex';
+      sendScoreToSheet(true, reason);
+    }
+
+    function resetGame() {
+      const toRemove = Composite.allBodies(world).filter(b => !b.isStatic);
+      toRemove.forEach(b => Composite.remove(world, b));
+      labels.forEach(l => {
+        if (l.element && l.element.parentNode) l.element.parentNode.removeChild(l.element);
+      });
+      labels = [];
+      points = 0;
+      updatePointsUI();
+      gameOver = false;
+      document.getElementById('modal-gameover').style.display = 'none';
+      setupMatterAndResize();
+      mostrarPergunta();
+    }
+
+    const modalStart = document.getElementById('modal-start');
+    const modalGameover = document.getElementById('modal-gameover');
+    const btnStart = document.getElementById('btn-start');
+    const modalStartBtn = document.getElementById('modal-start-btn');
+    const modalRetry = document.getElementById('modal-retry');
+
+    function openStartModal() {
+      modalStart.style.display = 'flex';
+      document.getElementById('modal-name').focus();
+    }
+
+    btnStart.addEventListener('click', () => {
+      const n = document.getElementById('player-name').value.trim();
+      const r = document.getElementById('player-role').value.trim();
+      if (!n) {
+        openStartModal();
         return;
       }
-    }
-  }
-
-  // acionador de fim de jogo
-  function triggerGameOver(reason) {
-    gameOver = true;
-    // tocar som e mostrar modal
-    document.getElementById('sound-fall').currentTime = 0;
-    document.getElementById('sound-fall').play();
-    const modal = document.getElementById('modal-gameover');
-    modal.style.display = 'flex';
-
-    // salvar resultado final
-    sendScoreToSheet(/*finalSave=*/true, reason);
-  }
-
-  // reiniciar o jogo (sem reload)
-  function resetGame() {
-    // remover todos os corpos que não são estáticos
-    const toRemove = Composite.allBodies(world).filter(b => !b.isStatic);
-    toRemove.forEach(b => Composite.remove(world, b));
-    // remover existing labels DOM
-    labels.forEach(l => {
-      if (l.element && l.element.parentNode) l.element.parentNode.removeChild(l.element);
+      player.name = n;
+      player.role = r;
+      startGame();
     });
-    labels = [];
-    points = 0;
-    updatePointsUI();
-    gameOver = false;
-    // esconder modal
-    document.getElementById('modal-gameover').style.display = 'none';
-    // re-add ground (caso tenha sido afetado pelo resize)
-    Composite.remove(world, ground);
-    ground = Bodies.rectangle(canvas.width / 2, canvas.height - 12, canvas.width, 24, {
-      isStatic: true,
-      render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
+
+    modalStartBtn.addEventListener('click', () => {
+      const n = document.getElementById('modal-name').value.trim();
+      const r = document.getElementById('modal-role').value.trim();
+      if (!n) {
+        alert('Informe seu nome para começar.');
+        return;
+      }
+      document.getElementById('player-name').value = n;
+      document.getElementById('player-role').value = r;
+      player.name = n; player.role = r;
+      modalStart.style.display = 'none';
+      startGame();
     });
-    Composite.add(world, ground);
-    mostrarPergunta();
-  }
 
-  // ==========================
-  // Envio para Google Apps Script
-  // ==========================
-  /**
-   * sendScoreToSheet
-   * - Se SCRIPT_URL for configurado (substituído na constante lá em cima), faz POST com:
-   *   { Jogador, Cargo, Data, Pontos, Ranking }
-   * - Modo: use 'no-cors' para permitir publicação anônima; se preferir resposta, configure CORS e deploy adequado no Apps Script.
-   *
-   * OBS: A planilha deverá ter colunas na ordem:
-   * A: Jogador
-   * B: Cargo
-   * C: Data
-   * D: Pontos
-   * E: Ranking
-   */
-  function sendScoreToSheet(finalSave=false, reason='') {
-    if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbx4nhEe4wsN61bdr3k2GKcYYLk_7LjeG00te9eJs4tlerrIILTfZKPcyeIFqp2C9_n3/exec') {
-      // ainda não configurado - apenas log no console
-      console.log('Apps Script URL não configurado. Substitua SCRIPT_URL no código.');
-      return;
+    modalRetry.addEventListener('click', () => {
+      modalGameover.style.display = 'none';
+      resetGame();
+    });
+
+    function startGame() {
+      try {
+        const bg = document.getElementById('bg-music');
+        bg.volume = 0.55;
+        bg.currentTime = 0;
+        bg.play().catch(e => { console.log('Autoplay bloqueado pelo navegador. O usuário deve tocar para ouvir.'); });
+      } catch (e) { console.warn(e); }
+      mostrarPergunta();
+      sendScoreToSheet();
     }
-    const nome = (player.name || document.getElementById('player-name').value || 'Anônimo');
-    const cargo = (player.role || document.getElementById('player-role').value || '');
-    const data = new Date().toLocaleString('pt-BR');
-    const payload = {
-      Jogador: nome,
-      Cargo: cargo,
-      Data: data,
-      Pontos: points,
-      Ranking: '' // deixamos em branco - pode ser preenchido pela planilha ou calculado no Apps Script
-    };
 
-    // POST para Apps Script (deploy como Web App)
-    try {
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // recomenda-se configurar CORS no Apps Script se quiser receber resposta
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+    Events.on(engine, 'afterUpdate', () => {
+      labels.forEach(l => {
+        const pos = l.body.position;
+        l.element.style.left = `${pos.x - 40}px`;
+        l.element.style.top = `${pos.y - 16}px`;
       });
-      console.log('Envio para planilha efetuado (no-cors).', payload, 'finalSave=', finalSave, 'reason=', reason);
-    } catch (err) {
-      console.error('Erro ao enviar para Apps Script:', err);
-    }
-  }
-
-  // ==========================
-  // Atualização de posições dos labels (sincroniza DOM com corpos)
-  // ==========================
-  Events.on(engine, 'afterUpdate', () => {
-    // posiciona labels
-    labels.forEach(l => {
-      const pos = l.body.position;
-      l.element.style.left = (pos.x - 40) + 'px';
-      l.element.style.top = (pos.y - 16) + 'px';
+      if (!gameOver) checkCollapse();
     });
 
-    // checar condições de colapso
-    if (!gameOver) checkCollapse();
-  });
-
-  // ==========================
-  // Interface inicial / modais
-  // ==========================
-  const modalStart = document.getElementById('modal-start');
-  const modalGameover = document.getElementById('modal-gameover');
-  const btnStart = document.getElementById('btn-start');
-  const modalStartBtn = document.getElementById('modal-start-btn');
-  const modalRetry = document.getElementById('modal-retry');
-
-  // função que abre modal inicial (caso queira forçar)
-  function openStartModal() {
-    modalStart.style.display = 'flex';
-    document.getElementById('modal-name').focus();
-  }
-
-  // start pelo botão lateral: transfere nome/cargo para campos principais e inicia música/perguntas
-  btnStart.addEventListener('click', () => {
-    const n = document.getElementById('player-name').value.trim();
-    const r = document.getElementById('player-role').value.trim();
-    if (!n) {
-      // se não preenchido, abre modal para garantir nome e cargo
-      openStartModal();
-      return;
-    }
-    player.name = n;
-    player.role = r;
-    startGame();
-  });
-
-  modalStartBtn.addEventListener('click', () => {
-    const n = document.getElementById('modal-name').value.trim();
-    const r = document.getElementById('modal-role').value.trim();
-    if (!n) { alert('Informe seu nome para começar.'); return; }
-    document.getElementById('player-name').value = n;
-    document.getElementById('player-role').value = r;
-    player.name = n; player.role = r;
-    modalStart.style.display = 'none';
-    startGame();
-  });
-
-  modalRetry.addEventListener('click', () => {
-    modalGameover.style.display = 'none';
-    resetGame();
-  });
-
-  // iniciar (liga trilha e mostra primeira pergunta)
-  function startGame() {
-    // tocar trilha
-    try {
-      const bg = document.getElementById('bg-music');
-      bg.volume = 0.55;
-      bg.currentTime = 0;
-      bg.play().catch(e=>{ console.log('Autoplay bloqueado pelo navegador. O usuário deve tocar para ouvir.'); });
-    } catch (e) { console.warn(e); }
-    mostrarPergunta();
-  }
-
-  // mostrar ranking local simplificado (os top3 locais são apenas o jogador atual enquanto não consulta a planilha)
-  function updateLocalRanking() {
-    const nome = document.getElementById('player-name').value || 'Anônimo';
-    const cargo = document.getElementById('player-role').value || '';
-    const list = document.getElementById('ranking-list');
-    list.innerHTML = '';
-    const li1 = document.createElement('li'); li1.textContent = `${nome}${cargo? ' ('+cargo+')':''}: ${points}`; list.appendChild(li1);
-    // placeholders
-    const li2 = document.createElement('li'); li2.textContent = '---';
-    const li3 = document.createElement('li'); li3.textContent = '---';
-    list.appendChild(li2); list.appendChild(li3);
-  }
-
-  // chamador de atualização (usa sendScoreToSheet e atualiza UI)
-  function updateUIAndRanking() {
-    updatePointsUI();
-    updateLocalRanking();
-  }
-
-  // wrapper para enviar e atualizar ranking local
-  function salvarEAtualizar() {
-    sendScoreToSheet();
-    updateUIAndRanking();
-  }
-
-  // chamamos atualização de ranking e pontos sempre que pontos mudarem
-  const originalResponder = responder; // (mantido por compatibilidade - não estritamente necessário)
-  // intercept: atualizamos UI sempre que pontos mudam (já no responder chamamos update)
-  // mas garantimos rodar updateLocalRanking periodicamente também
-  setInterval(() => {
-    updateLocalRanking();
-  }, 2000);
-
-  // função chamada pelo responder já atualiza pontos e chama sendScoreToSheet
-  function updatePointsUI() { document.getElementById('points').textContent = points; }
-
-  // botões auxiliares: reiniciar (exposto globalmente para botão modal)
-  function reiniciar() { resetGame(); }
-  window.reiniciar = reiniciar; // mantém compatibilidade caso algo chame window.reiniciar()
-
-  // inicialização: abrir modal inicial para mobile/desktop se nome não preenchido
-  window.addEventListener('load', () => {
-    const n = document.getElementById('player-name').value.trim();
-    if (!n) {
-      openStartModal();
-    } else {
-      // já tem nome — podemos iniciar automaticamente (ou aguardar clique)
-    }
-  });
-
-  // iniciar loop do jogo
-  // já iniciamos matter runner acima; a lógica do jogo permanece ativa
-  // chamamos resizeCanvas para ajustar render e Ground
-  resizeCanvas();
-
-  // garantir que ground siga o tamanho quando o usuário redimensiona
-  window.addEventListener('resize', () => {
-    // reposicionar ground
-    try {
-      Composite.remove(world, ground);
-    } catch (e) {}
-    ground = Bodies.rectangle(canvas.width / 2, canvas.height - 12, canvas.width, 24, {
-      isStatic: true,
-      render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
-    });
-    Composite.add(world, ground);
-  });
-
-  // ciclo de render posicionamento já feito pelo Events.afterUpdate
-  Events.on(engine, 'beforeUpdate', () => {
-    // nada adicional por enquanto
-  });
-
-  // atualiza posições dos labels a cada tick (já registrado acima via afterUpdate)
-  // Também atualiza o ranking local periodicamente:
-  setInterval(() => {
-    updateLocalRanking();
-  }, 3000);
-
-  // expor algumas funções para debug no console
-  window._GAME = {
-    addBlock, resetGame, sendScoreToSheet, triggerGameOver
-  };
-
+    window._GAME = {
+      addBlock, resetGame, sendScoreToSheet, triggerGameOver
+    };
   </script>
 </body>
 </html>
