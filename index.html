@@ -1,466 +1,465 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
-  <title>Cidade Firme — Jeremias 52</title>
-  <meta name="description" content="Jogo educativo baseado em Jeremias 52. Construa uma cidade com bases espirituais.">
-  <style>
-    :root{
-      --bg-dark:#1e272e;
-      --panel:#2f3640;
-      --accent:#fbc531;
-      --btn:#00a8ff;
-      --muted:#718093;
-    }
-    html,body{height:100%;margin:0;padding:0;font-family:'Trebuchet MS',sans-serif;background:#000;}
-    body { display:flex; min-height:100vh; background-color:var(--bg-dark); color:#ecf0f1; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
+  <title>Cidade Firme — Jeremias 52</title>
+  <meta name="description" content="Jogo educativo baseado em Jeremias 52. Construa uma cidade com bases espirituais.">
+  <style>
+    :root{
+      --bg-dark:#1e272e;
+      --panel:#2f3640;
+      --accent:#fbc531;
+      --btn:#00a8ff;
+      --muted:#718093;
+    }
+    html,body{height:100%;margin:0;padding:0;font-family:'Trebuchet MS',sans-serif;background:#000;}
+    body { display:flex; min-height:100vh; background-color:var(--bg-dark); color:#ecf0f1; }
 
-    /* layout responsivo */
-    #game-area{flex:3; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:12px; box-sizing:border-box;}
-    #sidebar{flex:1; background:var(--panel); padding:16px; box-sizing:border-box; overflow:auto; min-width:240px;}
+    /* layout responsivo */
+    #game-area{flex:3; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:12px; box-sizing:border-box;}
+    #sidebar{flex:1; background:var(--panel); padding:16px; box-sizing:border-box; overflow:auto; min-width:240px;}
 
-    h1{color:var(--accent); margin:6px 0 8px; font-size:1.4rem; text-align:center;}
-    canvas{border:4px solid #353b48; display:block; background:transparent; max-width:100%; height:auto;}
+    h1{color:var(--accent); margin:6px 0 8px; font-size:1.4rem; text-align:center;}
+    canvas{border:4px solid #353b48; display:block; background:transparent; max-width:100%; height:auto;}
 
-    #questions{width:100%; max-width:920px; margin-top:10px; text-align:center;}
-    #question-text{font-weight:700; color:#f5f6fa; margin:6px 0;}
+    #questions{width:100%; max-width:920px; margin-top:10px; text-align:center;}
+    #question-text{font-weight:700; color:#f5f6fa; margin:6px 0;}
 
-    .answers{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:6px;}
-    .answers button{background:var(--btn); color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600;}
-    .answers button:hover{opacity:0.95;}
+    .answers{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:6px;}
+    .answers button{background:var(--btn); color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600;}
+    .answers button:hover{opacity:0.95;}
 
-    /* sidebar */
-    #player-info h2, #ranking h2{margin:6px 0; color:#fff;}
-    #player-info input{width:100%; padding:8px; margin:6px 0; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:#111; color:#fff; box-sizing:border-box;}
-    #ranking ol{padding-left:16px; color:#fff;}
-    #points{font-weight:800; color:#fff;}
+    /* sidebar */
+    #player-info h2, #ranking h2{margin:6px 0; color:#fff;}
+    #player-info input{width:100%; padding:8px; margin:6px 0; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:#111; color:#fff; box-sizing:border-box;}
+    #ranking ol{padding-left:16px; color:#fff;}
+    #points{font-weight:800; color:#fff;}
 
-    /* modals */
-    .modal{position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; display:none;}
-    .modal .card{background:#fff; color:#111; padding:18px; border-radius:10px; width:92%; max-width:420px; text-align:center;}
-    .modal .card h2{margin-top:0; color:#333;}
-    .modal .card input{width:100%; padding:8px; margin:8px 0; box-sizing:border-box;}
-    .modal .actions{display:flex; gap:8px; justify-content:center; margin-top:10px;}
+    /* modals */
+    .modal{position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; display:none;}
+    .modal .card{background:#fff; color:#111; padding:18px; border-radius:10px; width:92%; max-width:420px; text-align:center;}
+    .modal .card h2{margin-top:0; color:#333;}
+    .modal .card input{width:100%; padding:8px; margin:8px 0; box-sizing:border-box;}
+    .modal .actions{display:flex; gap:8px; justify-content:center; margin-top:10px;}
 
-    /* block labels */
-    .block-label{position:absolute; font-weight:700; color:#2c3e50; text-align:center; pointer-events:none; text-shadow:0 1px 0 rgba(255,255,255,0.6); font-size:12px;}
+    /* block labels */
+    .block-label{position:absolute; font-weight:700; color:#2c3e50; text-align:center; pointer-events:none; text-shadow:0 1px 0 rgba(255,255,255,0.6); font-size:12px;}
 
-    /* small screens adjustments */
-    @media(max-width:1000px){
-      body{flex-direction:column;}
-      #game-area{order:1; width:100%; flex-basis:auto; padding:8px;}
-      #sidebar{order:2; width:100%; min-width:0; padding:12px; display:block;}
-      canvas{width:100%;}
-    }
-  </style>
+    /* small screens adjustments */
+    @media(max-width:1000px){
+      body{flex-direction:column;}
+      #game-area{order:1; width:100%; flex-basis:auto; padding:8px;}
+      #sidebar{order:2; width:100%; min-width:0; padding:12px; display:block;}
+      canvas{width:100%;}
+    }
+  </style>
 </head>
 <body>
 
-  <div id="game-area">
-    <h1>Cidade Firme — Jeremias 52</h1>
-    <canvas id="world" aria-label="Área do jogo — torre"></canvas>
+  <div id="game-area">
+    <h1>Cidade Firme — Jeremias 52</h1>
+    <canvas id="world" aria-label="Área do jogo — torre"></canvas>
 
-    <div id="questions">
-      <p id="question-text">Responda para construir sua cidade:</p>
-      <div class="answers" id="answers"></div>
-    </div>
-  </div>
+    <div id="questions">
+      <p id="question-text">Responda para construir sua cidade:</p>
+      <div class="answers" id="answers"></div>
+    </div>
+  </div>
 
-  <div id="sidebar" role="complementary" aria-label="Painel lateral">
-    <div id="player-info">
-      <h2>Jogador</h2>
-      <input id="player-name" placeholder="Nome" aria-label="Nome do jogador" />
-      <input id="player-role" placeholder="Cargo" aria-label="Cargo do jogador" />
-      <div style="margin-top:8px;">
-        <button id="btn-start" style="background:#27ae60;padding:10px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Iniciar Jogo</button>
-      </div>
-    </div>
+  <div id="sidebar" role="complementary" aria-label="Painel lateral">
+    <div id="player-info">
+      <h2>Jogador</h2>
+      <input id="player-name" placeholder="Nome" aria-label="Nome do jogador" />
+      <input id="player-role" placeholder="Cargo" aria-label="Cargo do jogador" />
+      <div style="margin-top:8px;">
+        <button id="btn-start" style="background:#27ae60;padding:10px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Iniciar Jogo</button>
+      </div>
+    </div>
 
-    <div id="ranking" style="margin-top:16px;">
-      <h2>Ranking (Top 3)</h2>
-      <ol id="ranking-list">
-        <li>---</li>
-        <li>---</li>
-        <li>---</li>
-      </ol>
-    </div>
+    <div id="ranking" style="margin-top:16px;">
+      <h2>Ranking (Top 3)</h2>
+      <ol id="ranking-list">
+        <li>---</li>
+        <li>---</li>
+        <li>---</li>
+      </ol>
+    </div>
 
-    <p style="margin-top:14px;">Pontos: <span id="points">0</span></p>
-    <p style="font-size:13px;color:#cbd5e1;margin-top:6px;">Após cada resposta os pontos são atualizados e enviados à sua planilha (quando a URL do Apps Script for configurada).</p>
-  </div>
+    <p style="margin-top:14px;">Pontos: <span id="points">0</span></p>
+    <p style="font-size:13px;color:#cbd5e1;margin-top:6px;">Após cada resposta os pontos são atualizados e enviados à sua planilha (quando a URL do Apps Script for configurada).</p>
+  </div>
 
-  <div id="modal-start" class="modal" role="dialog" aria-modal="true">
-    <div class="card">
-      <h2>Informe seu nome e cargo</h2>
-      <input id="modal-name" placeholder="Nome" />
-      <input id="modal-role" placeholder="Cargo" />
-      <div class="actions">
-        <button id="modal-start-btn" style="background:#27ae60;padding:8px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Começar</button>
-      </div>
-    </div>
-  </div>
+  <div id="modal-start" class="modal" role="dialog" aria-modal="true">
+    <div class="card">
+      <h2>Informe seu nome e cargo</h2>
+      <input id="modal-name" placeholder="Nome" />
+      <input id="modal-role" placeholder="Cargo" />
+      <div class="actions">
+        <button id="modal-start-btn" style="background:#27ae60;padding:8px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Começar</button>
+      </div>
+      </div>
+  </div>
 
-  <div id="modal-gameover" class="modal" role="alertdialog" aria-modal="true">
-    <div class="card">
-      <h2>O Muro caiu!</h2>
-      <p>Jeremias 52 nos lembra: sem fundamentos espirituais, a cidade desaba. Deseja tentar novamente?</p>
-      <div class="actions">
-        <button id="modal-retry" style="background:#e84118;padding:8px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Reiniciar</button>
-      </div>
-    </div>
-  </div>
+  <div id="modal-gameover" class="modal" role="alertdialog" aria-modal="true">
+    <div class="card">
+      <h2>O Muro caiu!</h2>
+      <p>Jeremias 52 nos lembra: sem fundamentos espirituais, a cidade desaba. Deseja tentar novamente?</p>
+      <div class="actions">
+        <button id="modal-retry" style="background:#e84118;padding:8px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer;">Reiniciar</button>
+      </div>
+    </div>
+  </div>
 
-  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/14/audio_2634b68e7f.mp3?filename=battle-of-jerusalem-11143.mp3" loop preload="auto"></audio>
-  <audio id="sound-drop" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
-  <audio id="sound-fall" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/14/audio_2634b68e7f.mp3?filename=battle-of-jerusalem-11143.mp3" loop preload="auto"></audio>
+  <audio id="sound-drop" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+  <audio id="sound-fall" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script>
-    /**
-     * Jogo: Cidade Firme — versão aprimorada
-     *
-     * Mudanças:
-     * - Perguntas dinâmicas (exemplo com API de IA)
-     * - Responsividade melhorada na lógica do canvas
-     * - `sendScoreToSheet` aprimorado para receber ranking do Apps Script
-     */
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+  <script>
+    /**
+     * Jogo: Cidade Firme — versão aprimorada
+     *
+     * Mudanças:
+     * - Perguntas dinâmicas (exemplo com API de IA)
+     * - Responsividade melhorada na lógica do canvas
+     * - `sendScoreToSheet` aprimorado para receber ranking do Apps Script
+     */
 
-    // ==========================
-    // CONFIGURAÇÕES (edite aqui)
-    // ==========================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4nhEe4wsN61bdr3k2GKcYYLk_7LjeG00te9eJs4tlerrIILTfZKPcyeIFqp2C9_n3/exec';
-    const IA_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-    const IA_API_KEY = 'AIzaSyCfk0xF3NOszHfws-pwQ4vDwfxvwy2PjQM';
+    // ==========================
+    // CONFIGURAÇÕES (edite aqui)
+    // ==========================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4nhEe4wsN61bdr3k2GKcYYLk_7LjeG00te9eJs4tlerrIILTfZKPcyeIFqp2C9_n3/exec';
+    // Essas variáveis não são mais usadas no lado do cliente por segurança, o Apps Script irá lidar com elas.
+    const IA_API_ENDPOINT = '';
+    const IA_API_KEY = '';
 
-    // ==========================
-    // Setup Matter.js
-    // ==========================
-    const { Engine, Render, Runner, Bodies, Composite, Events, Body, World } = Matter;
-    const engine = Engine.create();
-    const world = engine.world;
+    // ==========================
+    // Setup Matter.js
+    // ==========================
+    const { Engine, Render, Runner, Bodies, Composite, Events, Body, World } = Matter;
+    const engine = Engine.create();
+    const world = engine.world;
 
-    const canvas = document.getElementById('world');
-    let render = null;
-    let ground = null;
-    let points = 0;
-    let labels = [];
-    let gameOver = false;
-    let player = { name: '', role: '' };
+    const canvas = document.getElementById('world');
+    let render = null;
+    let ground = null;
+    let points = 0;
+    let labels = [];
+    let gameOver = false;
+    let player = { name: '', role: '' };
 
-    function setupMatterAndResize() {
-      const gameArea = document.getElementById('game-area');
-      const width = gameArea.clientWidth;
-      const height = Math.min(window.innerHeight * 0.65, 760);
-      canvas.width = width;
-      canvas.height = height;
+    function setupMatterAndResize() {
+      const gameArea = document.getElementById('game-area');
+      const width = gameArea.clientWidth;
+      const height = Math.min(window.innerHeight * 0.65, 760);
+      canvas.width = width;
+      canvas.height = height;
 
-      if (!render) {
-        render = Render.create({
-          canvas: canvas,
-          engine: engine,
-          options: {
-            width: width,
-            height: height,
-            wireframes: false,
-            background: 'transparent'
-          }
-        });
-        Render.run(render);
-        Runner.run(Runner.create(), engine);
-      } else {
-        Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: width, y: height } });
-        render.options.width = width;
-        render.options.height = height;
-        render.canvas.width = width;
-        render.canvas.height = height;
-      }
+      if (!render) {
+        render = Render.create({
+          canvas: canvas,
+          engine: engine,
+          options: {
+            width: width,
+            height: height,
+            wireframes: false,
+            background: 'transparent'
+          }
+        });
+        Render.run(render);
+        Runner.run(Runner.create(), engine);
+      } else {
+        Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: width, y: height } });
+        render.options.width = width;
+        render.options.height = height;
+        render.canvas.width = width;
+        render.canvas.height = height;
+      }
 
-      if (ground) {
-        Composite.remove(world, ground);
-      }
-      ground = Bodies.rectangle(width / 2, height - 12, width, 24, {
-        isStatic: true,
-        render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
-      });
-      Composite.add(world, ground);
-    }
+      if (ground) {
+        Composite.remove(world, ground);
+      }
+      ground = Bodies.rectangle(width / 2, height - 12, width, 24, {
+        isStatic: true,
+        render: { sprite: { texture: 'https://i.ibb.co/MfrCG7X/stone-ground.png' } }
+      });
+      Composite.add(world, ground);
+    }
 
-    window.addEventListener('resize', setupMatterAndResize);
-    window.addEventListener('load', () => {
-      setupMatterAndResize();
-      const n = document.getElementById('player-name').value.trim();
-      if (!n) {
-        openStartModal();
-      }
-    });
+    window.addEventListener('resize', setupMatterAndResize);
+    window.addEventListener('load', () => {
+      setupMatterAndResize();
+      const n = document.getElementById('player-name').value.trim();
+      if (!n) {
+        openStartModal();
+      }
+    });
 
-    // ==========================
-    // Lógica do Jogo
-    // ==========================
+    // ==========================
+    // Lógica do Jogo
+    // ==========================
 
-    // Função para buscar perguntas da IA (usando uma API como exemplo)
-    async function fetchIAQuestions() {
-      // Exemplo de como a requisição poderia ser feita:
-      /*
-      const response = await fetch(IA_API_ENDPOINT, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${IA_API_KEY}`
-          },
-          body: JSON.stringify({
-              prompt: "Gere 2 perguntas para um jogo de construção de cidade espiritual, com uma opção 'espiritual' (correta) e uma 'humana' (incorreta). O tema é Jeremias 52."
-          })
-      });
-      const data = await response.json();
-      return data.questions; // Adapte isso conforme a resposta da sua API
-      */
+    // Função para buscar perguntas da IA de forma segura
+    async function fetchIAQuestions() {
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getQuestion' })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+          return [data.question];
+        } else {
+          console.error("Erro ao obter pergunta da IA:", data.message);
+          // Retorna fallback em caso de erro
+          return [{ q: "Falha na comunicação. Tente novamente.", options: [{ txt: "OK", type: "spirit" }, { txt: "Tentar depois", type: "human" }] }];
+        }
+      } catch (err) {
+        console.error('Erro ao conectar com o Apps Script para perguntas:', err);
+        // Retorna fallback em caso de erro de rede
+        return [{ q: "Falha na comunicação. Tente novamente.", options: [{ txt: "OK", type: "spirit" }, { txt: "Tentar depois", type: "human" }] }];
+      }
+    }
 
-      // Por enquanto, usaremos uma lista de fallback para garantir que o jogo funcione
-      const perguntasFallback = [
-        { q: "Qual a melhor estratégia para resolver um conflito?", options: [{ txt: "Orar e buscar a reconciliação", type: "spirit" }, { txt: "Impor a sua vontade", type: "human" }] },
-        { q: "Como lidar com a ansiedade?", options: [{ txt: "Confiar em Deus e descansar Nele", type: "spirit" }, { txt: "Se isolar e preocupar-se", type: "human" }] }
-      ];
-      return perguntasFallback;
-    }
+    const answersEl = document.getElementById('answers');
+    async function mostrarPergunta() {
+      if (gameOver) return;
+      answersEl.innerHTML = '';
+      document.getElementById('question-text').textContent = 'Carregando pergunta...';
 
-    const answersEl = document.getElementById('answers');
-    async function mostrarPergunta() {
-      if (gameOver) return;
-      answersEl.innerHTML = '';
+      const perguntas = await fetchIAQuestions();
+      const p = perguntas[0];
+      document.getElementById('question-text').textContent = p.q;
 
-      const perguntas = await fetchIAQuestions();
-      const p = perguntas[Math.floor(Math.random() * perguntas.length)];
-      document.getElementById('question-text').textContent = p.q;
+      const shuffledOptions = p.options.sort(() => Math.random() - 0.5);
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.txt;
+        btn.onclick = () => responder(opt.type);
+        answersEl.appendChild(btn);
+      });
+    }
 
-      // Shuffle options to not always have correct answer first
-      const shuffledOptions = p.options.sort(() => Math.random() - 0.5);
-      shuffledOptions.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.textContent = opt.txt;
-        btn.onclick = () => responder(opt.type);
-        answersEl.appendChild(btn);
-      });
-    }
+    function responder(type) {
+      if (gameOver) return;
+      if (type === 'spirit') {
+        addBlock('spirit');
+        points += 12;
+      } else if (type === 'human_action') {
+        addBlock('spirit_small');
+        points += 8;
+      } else {
+        addBlock('human');
+        points += 6;
+      }
+      updatePointsUI();
+      sendScoreToSheet();
+      mostrarPergunta();
+    }
 
-    function responder(type) {
-      if (gameOver) return;
-      if (type === 'spirit') {
-        addBlock('spirit');
-        points += 12;
-      } else if (type === 'human_action') {
-        addBlock('spirit_small');
-        points += 8;
-      } else {
-        addBlock('human');
-        points += 6;
-      }
-      updatePointsUI();
-      sendScoreToSheet();
-      mostrarPergunta();
-    }
+    function addBlock(type) {
+      const W = Math.max(64, Math.min(120, Math.floor(canvas.width * 0.12)));
+      const H = Math.max(30, Math.floor(W * 0.45));
+      const x = canvas.width / 2 + (Math.random() * Math.min(280, canvas.width * 0.25) - Math.min(140, canvas.width * 0.125));
+      const y = 60;
 
-    function addBlock(type) {
-      const W = Math.max(64, Math.min(120, Math.floor(canvas.width * 0.12)));
-      const H = Math.max(30, Math.floor(W * 0.45));
-      const x = canvas.width / 2 + (Math.random() * Math.min(280, canvas.width * 0.25) - Math.min(140, canvas.width * 0.125));
-      const y = 60;
+      let spriteUrl = (type === 'spirit' || type === 'spirit_small') ? 'https://i.ibb.co/4YcJPJ8/brick-strong.png' : 'https://i.ibb.co/QNS2FfS/brick-weak.png';
+      let options = { restitution: 0.05, friction: 0.2, density: type === 'spirit' ? 0.002 : (type === 'spirit_small' ? 0.0015 : 0.003) };
+      if (type === 'spirit' || type === 'spirit_small') options.friction = 1.0;
 
-      let spriteUrl = (type === 'spirit' || type === 'spirit_small') ? 'https://i.ibb.co/4YcJPJ8/brick-strong.png' : 'https://i.ibb.co/QNS2FfS/brick-weak.png';
-      let options = { restitution: 0.05, friction: 0.2, density: type === 'spirit' ? 0.002 : (type === 'spirit_small' ? 0.0015 : 0.003) };
-      if (type === 'spirit' || type === 'spirit_small') options.friction = 1.0;
+      const block = Bodies.rectangle(x, y, W, H, {
+        restitution: options.restitution,
+        friction: options.friction,
+        density: options.density,
+        render: {
+          sprite: {
+            texture: spriteUrl,
+            xScale: W / 256,
+            yScale: H / 128
+          }
+        }
+      });
 
-      const block = Bodies.rectangle(x, y, W, H, {
-        restitution: options.restitution,
-        friction: options.friction,
-        density: options.density,
-        render: {
-          sprite: {
-            texture: spriteUrl,
-            xScale: W / 256,
-            yScale: H / 128
-          }
-        }
-      });
+      Composite.add(world, block);
+      const label = document.createElement('div');
+      label.className = 'block-label';
+      label.textContent = (type === 'spirit' || type === 'spirit_small') ? 'Espiritual' : 'Humano';
+      document.body.appendChild(label);
+      labels.push({ body: block, element: label, type: type === 'spirit_small' ? 'spirit' : type });
+      document.getElementById('sound-drop').currentTime = 0;
+      document.getElementById('sound-drop').play();
+    }
 
-      Composite.add(world, block);
-      const label = document.createElement('div');
-      label.className = 'block-label';
-      label.textContent = (type === 'spirit' || type === 'spirit_small') ? 'Espiritual' : 'Humano';
-      document.body.appendChild(label);
-      labels.push({ body: block, element: label, type: type === 'spirit_small' ? 'spirit' : type });
-      document.getElementById('sound-drop').currentTime = 0;
-      document.getElementById('sound-drop').play();
-    }
+    function updatePointsUI() {
+      document.getElementById('points').textContent = points;
+    }
 
-    function updatePointsUI() {
-      document.getElementById('points').textContent = points;
-    }
+    async function sendScoreToSheet(finalSave = false, reason = '') {
+      if (!SCRIPT_URL || SCRIPT_URL === 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL') {
+        console.log('Apps Script URL não configurado. Substitua SCRIPT_URL no código.');
+        return;
+      }
+      const nome = (player.name || document.getElementById('player-name').value || 'Anônimo');
+      const cargo = (player.role || document.getElementById('player-role').value || '');
 
-    async function sendScoreToSheet(finalSave = false, reason = '') {
-      if (!SCRIPT_URL || SCRIPT_URL === 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL') {
-        console.log('Apps Script URL não configurado. Substitua SCRIPT_URL no código.');
-        return;
-      }
-      const nome = (player.name || document.getElementById('player-name').value || 'Anônimo');
-      const cargo = (player.role || document.getElementById('player-role').value || '');
+      const payload = {
+        action: 'saveScore', // Nova propriedade para o Apps Script
+        Jogador: nome,
+        Cargo: cargo,
+        Pontos: points,
+      };
 
-      const payload = {
-        Jogador: nome,
-        Cargo: cargo,
-        Pontos: points,
-      };
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        const data = await response.json();
+        if (data.status === "success") {
+          updateRankingUI(data.ranking);
+        } else {
+          console.error("Erro do servidor:", data.message);
+        }
 
-        const data = await response.json();
-        if (data.status === "success") {
-          updateRankingUI(data.ranking);
-        } else {
-          console.error("Erro do servidor:", data.message);
-        }
+      } catch (err) {
+        console.error('Erro ao enviar para Apps Script:', err);
+      }
+    }
 
-      } catch (err) {
-        console.error('Erro ao enviar para Apps Script:', err);
-      }
-    }
+    function updateRankingUI(ranking) {
+      const rankingList = document.getElementById('ranking-list');
+      rankingList.innerHTML = '';
+      ranking.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.Jogador}: ${entry.Pontos} pontos`;
+        rankingList.appendChild(li);
+      });
+    }
 
-    function updateRankingUI(ranking) {
-      const rankingList = document.getElementById('ranking-list');
-      rankingList.innerHTML = '';
-      ranking.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${entry.Jogador}: ${entry.Pontos} pontos`;
-        rankingList.appendChild(li);
-      });
-    }
+    function checkCollapse() {
+      if (gameOver) return;
+      const humanBlocks = labels.filter(l => l.type === 'human');
+      for (const h of humanBlocks) {
+        const hb = h.body;
+        const above = labels.filter(l => (l.type === 'spirit') && (l.body.position.y < hb.position.y) && (Math.abs(l.body.position.x - hb.position.x) < Math.max(40, hb.bounds.max.x - hb.bounds.min.x)));
+        if (above.length > 2) {
+          triggerGameOver('human_base_failure');
+          return;
+        }
+      }
 
-    function checkCollapse() {
-      if (gameOver) return;
-      const humanBlocks = labels.filter(l => l.type === 'human');
-      for (const h of humanBlocks) {
-        const hb = h.body;
-        const above = labels.filter(l => (l.type === 'spirit') && (l.body.position.y < hb.position.y) && (Math.abs(l.body.position.x - hb.position.x) < Math.max(40, hb.bounds.max.x - hb.bounds.min.x)));
-        if (above.length > 2) {
-          triggerGameOver('human_base_failure');
-          return;
-        }
-      }
+      const all = Composite.allBodies(world);
+      for (const b of all) {
+        if (!b.isStatic && b.position.y > canvas.height - 30) {
+          const fallenCount = all.filter(x => !x.isStatic && x.position.y > canvas.height - 40).length;
+          if (fallenCount > 4) {
+            triggerGameOver('physical_fall');
+            return;
+          }
+        }
+      }
 
-      const all = Composite.allBodies(world);
-      for (const b of all) {
-        if (!b.isStatic && b.position.y > canvas.height - 30) {
-          const fallenCount = all.filter(x => !x.isStatic && x.position.y > canvas.height - 40).length;
-          if (fallenCount > 4) {
-            triggerGameOver('physical_fall');
-            return;
-          }
-        }
-      }
+      for (const b of all) {
+        if (!b.isStatic && Math.abs(b.angle) > Math.PI / 3) {
+          triggerGameOver('angle_failure');
+          return;
+        }
+      }
+    }
 
-      for (const b of all) {
-        if (!b.isStatic && Math.abs(b.angle) > Math.PI / 3) {
-          triggerGameOver('angle_failure');
-          return;
-        }
-      }
-    }
+    function triggerGameOver(reason) {
+      gameOver = true;
+      document.getElementById('sound-fall').currentTime = 0;
+      document.getElementById('sound-fall').play();
+      const modal = document.getElementById('modal-gameover');
+      modal.style.display = 'flex';
+      sendScoreToSheet(true, reason);
+    }
 
-    function triggerGameOver(reason) {
-      gameOver = true;
-      document.getElementById('sound-fall').currentTime = 0;
-      document.getElementById('sound-fall').play();
-      const modal = document.getElementById('modal-gameover');
-      modal.style.display = 'flex';
-      sendScoreToSheet(true, reason);
-    }
+    function resetGame() {
+      const toRemove = Composite.allBodies(world).filter(b => !b.isStatic);
+      toRemove.forEach(b => Composite.remove(world, b));
+      labels.forEach(l => {
+        if (l.element && l.element.parentNode) l.element.parentNode.removeChild(l.element);
+      });
+      labels = [];
+      points = 0;
+      updatePointsUI();
+      gameOver = false;
+      document.getElementById('modal-gameover').style.display = 'none';
+      setupMatterAndResize();
+      mostrarPergunta();
+    }
 
-    function resetGame() {
-      const toRemove = Composite.allBodies(world).filter(b => !b.isStatic);
-      toRemove.forEach(b => Composite.remove(world, b));
-      labels.forEach(l => {
-        if (l.element && l.element.parentNode) l.element.parentNode.removeChild(l.element);
-      });
-      labels = [];
-      points = 0;
-      updatePointsUI();
-      gameOver = false;
-      document.getElementById('modal-gameover').style.display = 'none';
-      setupMatterAndResize();
-      mostrarPergunta();
-    }
+    const modalStart = document.getElementById('modal-start');
+    const modalGameover = document.getElementById('modal-gameover');
+    const btnStart = document.getElementById('btn-start');
+    const modalStartBtn = document.getElementById('modal-start-btn');
+    const modalRetry = document.getElementById('modal-retry');
 
-    const modalStart = document.getElementById('modal-start');
-    const modalGameover = document.getElementById('modal-gameover');
-    const btnStart = document.getElementById('btn-start');
-    const modalStartBtn = document.getElementById('modal-start-btn');
-    const modalRetry = document.getElementById('modal-retry');
+    function openStartModal() {
+      modalStart.style.display = 'flex';
+      document.getElementById('modal-name').focus();
+    }
 
-    function openStartModal() {
-      modalStart.style.display = 'flex';
-      document.getElementById('modal-name').focus();
-    }
+    btnStart.addEventListener('click', () => {
+      const n = document.getElementById('player-name').value.trim();
+      const r = document.getElementById('player-role').value.trim();
+      if (!n) {
+        openStartModal();
+        return;
+      }
+      player.name = n;
+      player.role = r;
+      startGame();
+    });
 
-    btnStart.addEventListener('click', () => {
-      const n = document.getElementById('player-name').value.trim();
-      const r = document.getElementById('player-role').value.trim();
-      if (!n) {
-        openStartModal();
-        return;
-      }
-      player.name = n;
-      player.role = r;
-      startGame();
-    });
+    modalStartBtn.addEventListener('click', () => {
+      const n = document.getElementById('modal-name').value.trim();
+      const r = document.getElementById('modal-role').value.trim();
+      if (!n) {
+        alert('Informe seu nome para começar.');
+        return;
+      }
+      document.getElementById('player-name').value = n;
+      document.getElementById('player-role').value = r;
+      player.name = n; player.role = r;
+      modalStart.style.display = 'none';
+      startGame();
+    });
 
-    modalStartBtn.addEventListener('click', () => {
-      const n = document.getElementById('modal-name').value.trim();
-      const r = document.getElementById('modal-role').value.trim();
-      if (!n) {
-        alert('Informe seu nome para começar.');
-        return;
-      }
-      document.getElementById('player-name').value = n;
-      document.getElementById('player-role').value = r;
-      player.name = n; player.role = r;
-      modalStart.style.display = 'none';
-      startGame();
-    });
+    modalRetry.addEventListener('click', () => {
+      modalGameover.style.display = 'none';
+      resetGame();
+    });
 
-    modalRetry.addEventListener('click', () => {
-      modalGameover.style.display = 'none';
-      resetGame();
-    });
+    function startGame() {
+      try {
+        const bg = document.getElementById('bg-music');
+        bg.volume = 0.55;
+        bg.currentTime = 0;
+        bg.play().catch(e => { console.log('Autoplay bloqueado pelo navegador. O usuário deve tocar para ouvir.'); });
+      } catch (e) { console.warn(e); }
+      mostrarPergunta();
+      sendScoreToSheet();
+    }
 
-    function startGame() {
-      try {
-        const bg = document.getElementById('bg-music');
-        bg.volume = 0.55;
-        bg.currentTime = 0;
-        bg.play().catch(e => { console.log('Autoplay bloqueado pelo navegador. O usuário deve tocar para ouvir.'); });
-      } catch (e) { console.warn(e); }
-      mostrarPergunta();
-      sendScoreToSheet();
-    }
+    Events.on(engine, 'afterUpdate', () => {
+      labels.forEach(l => {
+        const pos = l.body.position;
+        l.element.style.left = `${pos.x - 40}px`;
+        l.element.style.top = `${pos.y - 16}px`;
+      });
+      if (!gameOver) checkCollapse();
+    });
 
-    Events.on(engine, 'afterUpdate', () => {
-      labels.forEach(l => {
-        const pos = l.body.position;
-        l.element.style.left = `${pos.x - 40}px`;
-        l.element.style.top = `${pos.y - 16}px`;
-      });
-      if (!gameOver) checkCollapse();
-    });
-
-    window._GAME = {
-      addBlock, resetGame, sendScoreToSheet, triggerGameOver
-    };
-  </script>
+    window._GAME = {
+      addBlock, resetGame, sendScoreToSheet, triggerGameOver
+    };
+  </script>
 </body>
 </html>
