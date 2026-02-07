@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel EBD Completo - Ezequiel 14</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #eceff1;
+            --text: #333;
+            --completed: #bdc3c7;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de Progresso Superior */
+        .progress-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .bar-container {
+            width: 90%;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Container Principal */
+        .main-container {
+            width: 95%;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
+        }
+
+        .header-box {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Cards Estilizados */
+        .card {
+            background: var(--white);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
+        }
+
+        /* Estados do Card */
+        .card.active { border-left-width: 10px; transform: scale(1.02); }
+        .card.done { 
+            background: #f9f9f9; 
+            border-left-color: var(--completed) !important;
+        }
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
+        }
+
+        .card-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .card-body {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .card.active .card-body { display: block; }
+
+        /* Estilização Interna */
+        .section-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #eee;
+        }
+
+        .bible-verse {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
+            font-style: italic;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
+        }
+
+        .app-box {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+            font-size: 0.95rem;
+        }
+
+        .question-box {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2196f3;
+        }
+
+        .suggested-answers {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            color: #555;
+        }
+
+        /* Cores das Bordas */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #2980b9; }
+        .c-gre { border-left-color: #27ae60; }
+        .c-yel { border-left-color: #f1c40f; }
+        .c-special { border-left-color: #e67e22; }
+
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="progress-header">
+    <div class="progress-info">Progresso da Aula: <span id="percent">0%</span></div>
+    <div class="bar-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header-box">
+        <h2 style="margin:0">ESTUDO 6 – EZEQUIEL 14</h2>
+        <small>Tema: Noé, Daniel e Jó não substituem você</small>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📖 Leitura e Verdade Prática</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Leitura Bíblica:</strong> Ezequiel 14.1–23</p>
+            <div class="app-box">
+                <strong>✨ Verdade Prática:</strong><br>
+                Noé, Daniel e Jó nos lembram que a presença ou intercessão dos outros tem limites e não substituem o arrependimento, a obediência e o relacionamento pessoal com Deus.
+            </div>
+            <div class="bible-verse">
+                <strong>📝 Texto Áureo:</strong><br>
+                “Ainda que estivessem no meio dela estes três homens, Noé, Daniel e Jó, eles, pela sua justiça, salvariam apenas a sua própria vida, diz o Senhor Deus.” (Ez 14.14)
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🔰 INTRODUÇÃO</span>
+        </div>
+        <div class="card-body">
+            <p>Ezequiel 14 apresenta uma verdade muito importante: <strong>a fé é pessoal e intransferível</strong>.</p>
+            <p>Deus mostra que cada pessoa deve assumir sua própria responsabilidade diante dEle. Ninguém pode buscar a Deus por nós.</p>
+            <div class="question-box">
+                <strong>❓ Pergunta de Abertura:</strong><br>
+                👉 A fé de outra pessoa pode substituir a nossa fé em Deus?
+                <div class="suggested-answers">
+                    1. Não, cada pessoa precisa ter seu próprio relacionamento.<br>
+                    2. A oração ajuda, mas não substitui a decisão pessoal.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-blu" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟦 I. NOÉ E A CORRUPÇÃO GERAL</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. O juízo da fome (14.13)</strong><br>Consequência da desobediência coletiva.</p>
+            <div class="app-box">📌 <strong>Aplicação:</strong> O pecado sempre traz consequências individuais e coletivas.</div>
+            
+            <p><strong>2. Noé andava com Deus (Gn 6.9)</strong><br>Viveu fielmente em uma geração corrompida.</p>
+            <div class="app-box">📌 <strong>Aplicação:</strong> Podemos andar com Deus mesmo quando a maioria se afasta.</div>
+
+            <p><strong>3. A limitação de Noé (14.14)</strong><br>Mesmo sendo justo, a justiça não se transfere.</p>
+
+            <div class="question-box">
+                <strong>❓ Pergunta Interativa:</strong><br>
+                👉 Por que não podemos depender da fé de outras pessoas?
+                <div class="suggested-answers">
+                    1. Porque Deus trata cada pessoa individualmente.<br>
+                    2. A salvação é uma decisão pessoal.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-gre" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟩 II. DANIEL E AS FERAS</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. O juízo das feras (14.15)</strong><br>O pecado afeta o ambiente e a sociedade.</p>
+            
+            <p><strong>2. Daniel na cova dos leões (Dn 6.16)</strong><br>Fidelidade mantida sob pressão.</p>
+            <div class="app-box">📌 <strong>Aplicação:</strong> Nossa fé precisa ser firme mesmo quando ninguém está olhando.</div>
+
+            <p><strong>3. A limitação de Daniel (14.18)</strong><br>Daniel não poderia livrar outros do juízo.</p>
+            <div class="app-box">📌 <strong>Aplicação:</strong> Deus não tem netos espirituais, apenas filhos.</div>
+
+            <div class="question-box">
+                <strong>❓ Pergunta Interativa:</strong><br>
+                👉 O que podemos aprender com a atitude de Daniel?
+                <div class="suggested-answers">
+                    1. Permanecer firmes mesmo em dificuldades.<br>
+                    2. Não negociar nossa fé.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-yel" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟨 III. JÓ E O SOFRIMENTO HUMANO</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. O juízo da peste e do sangue (14.19)</strong><br>Mostra a gravidade do pecado extremo.</p>
+            
+            <p><strong>2. Jó é fiel na dor (Jó 1.21)</strong><br>Sua fé não dependia das circunstâncias.</p>
+            <div class="app-box">📌 <strong>Aplicação:</strong> A verdadeira fé permanece firme nos momentos difíceis.</div>
+
+            <p><strong>3. A limitação de Jó (14.20)</strong><br>A justiça é pessoal.</p>
+
+            <div class="question-box">
+                <strong>❓ Pergunta Interativa:</strong><br>
+                👉 O que mais fortalece nossa vida espiritual pessoal?
+                <div class="suggested-answers">
+                    1. Ter um tempo diário com Deus.<br>
+                    2. Praticar a Palavra no cotidiano.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 DINÂMICA: NÃO DÁ PARA PEGAR CARONA</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Objetivo:</strong> Mostrar que a fé é pessoal.</p>
+            <p><strong>Como fazer:</strong></p>
+            <ol>
+                <li>Peça um voluntário para sentar na cadeira.</li>
+                <li>Pergunte: "Se ele está sentado, todos estão sentados também?"</li>
+                <li>Explique: Assim como ninguém pode sentar por outra pessoa, ninguém pode crer por outra pessoa.</li>
+            </ol>
+            <p><em>Finalize reforçando: Cada um precisa ter sua própria fé.</em></p>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 APLICAÇÃO PESSOAL (FINAL)</span>
+        </div>
+        <div class="card-body">
+            <p>Não podemos depender da fé de pais, líderes ou amigos. Cada um deve assumir sua posição diante de Deus em santidade, arrependimento e obediência.</p>
+            <p style="text-align:center; font-weight:bold; color:var(--accent);">Amém!</p>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Ezequiel 14
+</footer>
+
+<script>
+    function handleCardClick(card) {
+        // Se o card já está aberto, ele fecha e marca como "concluído" (risca)
+        if (card.classList.contains('active')) {
+            card.classList.remove('active');
+            card.classList.add('done');
+        } else {
+            // Se está fechado, ele abre (mas não desmarca o concluído se já tiver)
+            card.classList.add('active');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.card');
+        const completed = document.querySelectorAll('.card.done');
+        const progressFill = document.getElementById('progress-fill');
+        const percentText = document.getElementById('percent');
+        
+        const percentage = Math.round((completed.length / cards.length) * 100);
+        
+        progressFill.style.width = percentage + '%';
+        percentText.innerText = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
