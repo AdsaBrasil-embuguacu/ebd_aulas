@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel EBD - Ezequiel 34</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #eceff1;
+            --text: #333;
+            --completed: #bdc3c7;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de Progresso Superior */
+        .progress-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .bar-container {
+            width: 90%;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Container Principal */
+        .main-container {
+            width: 95%;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
+        }
+
+        .header-box {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Cards Estilizados */
+        .card {
+            background: var(--white);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
+        }
+
+        .card.active { border-left-width: 10px; transform: scale(1.01); }
+        .card.done { 
+            background: #f9f9f9; 
+            border-left-color: var(--completed) !important;
+        }
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
+        }
+
+        .card-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .card-body {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .card.active .card-body { display: block; }
+
+        .bible-verse {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
+            font-style: italic;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
+        }
+
+        .app-box {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+            font-size: 0.95rem;
+        }
+
+        .question-box {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2196f3;
+        }
+
+        .suggested-answers {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .devocional-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .devocional-item {
+            background: #f1f1f1;
+            padding: 5px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Cores das Bordas */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #2980b9; }
+        .c-gre { border-left-color: #27ae60; }
+        .c-yel { border-left-color: #f1c40f; }
+        .c-special { border-left-color: #e67e22; }
+
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="progress-header">
+    <div class="progress-info">Progresso da Aula: <span id="percent">0%</span></div>
+    <div class="bar-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header-box">
+        <h2 style="margin:0">ESTUDO 9 – EZEQUIEL 34</h2>
+        <small>TEMA: O DIVINO PASTOR</small>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📖 Leitura e Verdade Prática</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Leitura Bíblica:</strong> Ezequiel 34.1–17</p>
+            <div class="app-box">
+                <strong>✨ Verdade Prática:</strong><br>
+                A liderança eficaz se mede pelo serviço, proteção e exemplo ao rebanho, imitando o Sumo Pastor que deu a vida pelas ovelhas.
+            </div>
+            <div class="bible-verse">
+                <strong>📝 Texto Áureo:</strong><br>
+                “Ai dos pastores de Israel que se apascentam a si mesmos! Não apascentarão os pastores as ovelhas?” (Ez 34.2)
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🔰 Introdução</span>
+        </div>
+        <div class="card-body">
+            <p>Ezequiel 34 traz uma forte repreensão contra os líderes de Israel. Deus declara que Ele mesmo assumiria o cuidado do Seu rebanho, apontando para o cumprimento perfeito em Cristo.</p>
+            <div class="question-box">
+                <strong>❓ Pergunta de Abertura:</strong><br>
+                👉 O que diferencia um líder verdadeiro de um líder egoísta?
+                <div class="suggested-answers">
+                    • O verdadeiro serve; o egoísta se serve.<br>
+                    • O verdadeiro protege; o egoísta explora.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-blu" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟦 I. A Condenação dos Pastores Infiéis</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Pastores de si mesmos (34.2):</strong> Inverteram a lógica; em vez de alimentar o povo, alimentavam o próprio ego.</p>
+            <p><strong>2. Exploradores de ovelhas (34.3):</strong> Denúncia de abuso, ganância e negligência. Usavam o rebanho para benefício próprio.</p>
+            <p><strong>3. Pastores descuidados (34.5):</strong> Sem proteção, o rebanho se espalhou e tornou-se presa fácil.</p>
+            
+            <div class="app-box">📌 <strong>Aplicação:</strong> Liderança cristã não é posição, é responsabilidade e serviço sacrificial.</div>
+
+            <div class="question-box">
+                <strong>❓ Interativo:</strong><br>
+                👉 Por que proteger os mais frágeis é essencial na igreja?
+                <div class="suggested-answers">
+                    • Porque refletem o coração de Cristo.<br>
+                    • Porque a igreja é uma família espiritual.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-gre" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟩 II. O Cuidado do Pastor Divino</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Deus assume a liderança (34.11):</strong> “Eis que eu mesmo procurarei as minhas ovelhas.” Deus intervém quando os líderes falham.</p>
+            <p><strong>2. Julgamento entre ovelhas (34.17):</strong> Deus julga também as ovelhas que oprimem umas às outras.</p>
+            <p><strong>3. O servo messiânico (34.23):</strong> Promessa clara apontando para o "único pastor", Jesus Cristo.</p>
+
+            <div class="app-box">📌 <strong>Aplicação:</strong> Mesmo quando decepcionados por pessoas, Deus permanece fiel e cuidador.</div>
+
+            <div class="question-box">
+                <strong>❓ Interativo:</strong><br>
+                👉 O que essa promessa revela sobre o caráter de Deus?
+                <div class="suggested-answers">
+                    • Ele é justo e zeloso.<br>
+                    • Ele é cuidador e extremamente amoroso.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-yel" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟨 III. Jesus, o Pastor Prometido</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. A aliança de Paz (34.25):</strong> Promessa de segurança, provisão e restauração espiritual.</p>
+            <p><strong>2. Cristo, o Bom Pastor (Jo 10.11):</strong> Diferente dos falsos, Jesus deu a vida pelo rebanho.</p>
+            <p><strong>3. Identidade e Comunhão (34.31):</strong> “Vós sois ovelhas minhas... eu sou o vosso Deus.”</p>
+
+            <div class="app-box">📌 <strong>Aplicação:</strong> Nossa segurança final não está em líderes humanos, mas no Senhor.</div>
+
+            <div class="question-box">
+                <strong>❓ Interativo:</strong><br>
+                👉 Quais atitudes de Jesus revelam Seu amor como Pastor?
+                <div class="suggested-answers">
+                    • O sacrifício voluntário na cruz.<br>
+                    • O ato de guiar, proteger e restaurar a alma.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 Dinâmica: Cuidando do Rebanho</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Como Fazer:</strong></p>
+            <ol>
+                <li>Divida a classe em grupos.</li>
+                <li>Dê um cenário (ex: novo convertido, irmão desanimado, família em crise).</li>
+                <li>Pergunte: "Como agiríamos como pastores/cuidados nessa situação?"</li>
+            </ol>
+            <p><em>Objetivo: Mostrar que todos somos chamados a cuidar uns dos outros.</em></p>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📝 Perguntas de Fixação</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Significado de “Comeis a gordura...”?</strong> Abuso e exploração para benefício próprio.</p>
+            <p><strong>2. Como Deus trata as ovelhas oprimidas?</strong> Ele as buscará, curará e fará justiça.</p>
+            <div class="devocional-grid">
+                <div class="devocional-item">S: Ez 34.2</div>
+                <div class="devocional-item">T: Ez 34.6</div>
+                <div class="devocional-item">Q: Ez 34.11</div>
+                <div class="devocional-item">Q: Ez 34.16</div>
+                <div class="devocional-item">S: Ez 34.27</div>
+                <div class="devocional-item">D: Ez 34.31</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 Aplicação Pessoal</span>
+        </div>
+        <div class="card-body">
+            <p style="text-align: center;"><strong>Confie em Cristo!</strong> Ele é o Pastor que conhece, cura, guia e salva. Harpa: 156 – 231.</p>
+            <p style="text-align:center; font-weight:bold; color:var(--accent);">Amém!</p>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Ezequiel 34
+</footer>
+
+<script>
+    function handleCardClick(card) {
+        if (card.classList.contains('active')) {
+            card.classList.remove('active');
+            card.classList.add('done');
+        } else {
+            card.classList.add('active');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.card');
+        const completed = document.querySelectorAll('.card.done');
+        const progressFill = document.getElementById('progress-fill');
+        const percentText = document.getElementById('percent');
+        
+        const percentage = Math.round((completed.length / cards.length) * 100);
+        
+        progressFill.style.width = percentage + '%';
+        percentText.innerText = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
