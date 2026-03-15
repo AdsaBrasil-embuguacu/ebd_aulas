@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel EBD - Estudo 11</title>
+    <style>
+        :root {
+            --primary: #1e272e;
+            --accent: #00a8ff;
+            --bg: #eceff1;
+            --text: #333;
+            --completed: #bdc3c7;
+            --white: #ffffff;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de Progresso Superior */
+        .progress-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .bar-container {
+            width: 90%;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Container Principal */
+        .main-container {
+            width: 95%;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
+        }
+
+        .header-box {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Cards Estilizados */
+        .card {
+            background: var(--white);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
+        }
+
+        .card.active { border-left-width: 10px; transform: scale(1.01); }
+        .card.done { 
+            background: #f9f9f9; 
+            border-left-color: var(--completed) !important;
+        }
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
+        }
+
+        .card-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .card-body {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .card.active .card-body { display: block; }
+
+        .bible-verse {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
+            font-style: italic;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
+        }
+
+        .app-box {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+            font-size: 0.95rem;
+        }
+
+        .example-box {
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #747d8c;
+            font-size: 0.9rem;
+            color: #2f3542;
+        }
+
+        .question-box {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2196f3;
+        }
+
+        .suggested-answers {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #34495e;
+            color: white;
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+        }
+
+        /* Cores das Bordas */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #2980b9; }
+        .c-gre { border-left-color: #27ae60; }
+        .c-yel { border-left-color: #f1c40f; }
+        .c-special { border-left-color: #e67e22; }
+
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="progress-header">
+    <div class="progress-info">Progresso da Lição: <span id="percent">0%</span></div>
+    <div class="bar-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header-box">
+        <h2 style="margin:0">ESTUDO 11 – EZEQUIEL 38-39</h2>
+        <small>A BATALHA ESCATOLÓGICA</small>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📖 Abertura e Texto Áureo</span>
+        </div>
+        <div class="card-body">
+            <div class="status-pill">TEXTO BASE: EZ 38 e 39</div>
+            <p><strong>Leitura Bíblica:</strong> Ezequiel 39.1-16</p>
+            <div class="app-box">
+                <strong>✨ Verdade Prática:</strong><br>
+                Toda aparente vitória do mal é temporária. O bem sempre triunfará.
+            </div>
+            <div class="bible-verse">
+                <strong>📝 Texto Áureo:</strong><br>
+                “Tu, pois, ó filho do homem, profetiza ainda contra Gogue...” (Ez 39.1)
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🔰 Introdução</span>
+        </div>
+        <div class="card-body">
+            <p>Uma grande batalha espiritual contra o povo de Deus se levanta sob a liderança de Gogue. Mas a mensagem central não é o poder do inimigo, mas a <strong>Soberania de Deus</strong>.</p>
+            <p>Crises e ataques espirituais são oportunidades para Deus revelar sua glória.</p>
+            <div class="app-box">
+                <strong>Objetivos:</strong> Deus cuida dos seus; A derrota do mal é certa; Confiança em tempos de crise.
+            </div>
+        </div>
+    </div>
+
+    <div class="card c-blu" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟦 I. A Conspiração de Gogue</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Gogue e aliados (38.2):</strong> Uma coalizão de nações (áreas da Turquia, Irã, África) contra Israel. Mostra que sempre haverá oposição cultural e ideológica contra a fé.</p>
+            <div class="example-box">📌 <strong>Exemplo:</strong> Pressão no trabalho ou escola por defender valores bíblicos.</div>
+            <div class="question-box">
+                👉 Quais formas de oposição contra a fé vemos hoje?
+                <div class="suggested-answers">
+                    1. "Pressões culturais para mudar valores bíblicos."<br>
+                    2. "Perseguição ou zombaria contra quem vive a fé."
+                </div>
+            </div>
+
+            <p><strong>2. O plano maligno (38.10):</strong> Atacar quando o povo estivesse em paz. Mas o mal só age dentro dos limites permitidos por Deus.</p>
+            <div class="question-box">
+                👉 O que lembrar em crises inesperadas?
+                <div class="suggested-answers">
+                    1. "Que Deus continua no controle."<br>
+                    2. "Que provas podem fortalecer nossa fé."
+                </div>
+            </div>
+
+            <p><strong>3. Significado Escatológico (38.16):</strong> Eventos dos últimos tempos. O objetivo é a revelação da santidade de Deus diante das nações.</p>
+        </div>
+    </div>
+
+    <div class="card c-gre" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟩 II. O Juízo contra Gogue</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. A Soberania de Deus (38.17):</strong> Gogue ataca por decisão própria, mas Deus usa o evento para revelar Sua glória.</p>
+            <div class="question-box">
+                👉 O que significa dizer que Deus é soberano?
+                <div class="suggested-answers">
+                    1. "Que Ele governa todas as coisas."<br>
+                    2. "Que nada acontece fora da Sua permissão."
+                </div>
+            </div>
+
+            <p><strong>2. Confusão e Autodestruição (38.21):</strong> O mal acaba se autodestruindo. Vemos isso em Gideão (Jz 7.22).</p>
+            <div class="question-box">
+                👉 Por que não confiar na própria força em batalhas espirituais?
+                <div class="suggested-answers">
+                    1. "Porque quem vence as batalhas é Deus."<br>
+                    2. "Porque nossa força é limitada, mas Deus é poderoso."
+                </div>
+            </div>
+
+            <p><strong>3. "Saberão que Eu sou o Senhor" (38.23):</strong> A vitória exalta a santidade de Deus, não o nosso ego.</p>
+        </div>
+    </div>
+
+    <div class="card c-yel" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟨 III. A Vitória Final</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Conhecimento de Deus (39.21):</strong> O mundo verá a glória de Deus através da pregação e de vidas transformadas.</p>
+            <div class="question-box">
+                👉 Como ajudar outros a conhecerem Deus?
+                <div class="suggested-answers">
+                    1. "Falando de Jesus e pregando o Evangelho."<br>
+                    2. "Vivendo uma vida que reflita Cristo."
+                </div>
+            </div>
+
+            <p><strong>2. Arrependimento e Restauração (39.22):</strong> Deus disciplina para trazer arrependimento e restaurar a comunhão.</p>
+            <div class="question-box">
+                👉 O que fazer ao perceber um erro diante de Deus?
+                <div class="suggested-answers">
+                    1. "Arrepender-se e confessar o pecado."<br>
+                    2. "Voltar para Deus e buscar mudança."
+                </div>
+            </div>
+
+            <p><strong>3. O Derramar do Espírito (39.29):</strong> A restauração é interior. O Espírito consola, guia e transforma.</p>
+        </div>
+    </div>
+
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 Conclusão e Aplicação</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Três verdades:</strong> Deus no controle; o mal é temporário; a vitória final é do Senhor.</p>
+            <div class="example-box">
+                <strong>Aplicação Pessoal:</strong><br>
+                • Você tem confiado em Deus nas crises?<br>
+                • Você crê no controle divino sobre a história?
+            </div>
+            <p style="text-align:center;"><strong>Hinos da Harpa: 244 — 298 — 525 — 305</strong></p>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Estudo 11
+</footer>
+
+<script>
+    function handleCardClick(card) {
+        if (card.classList.contains('active')) {
+            card.classList.remove('active');
+            card.classList.add('done');
+        } else {
+            card.classList.add('active');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.card');
+        const completed = document.querySelectorAll('.card.done');
+        const progressFill = document.getElementById('progress-fill');
+        const percentText = document.getElementById('percent');
+        
+        const percentage = Math.round((completed.length / cards.length) * 100);
+        
+        progressFill.style.width = percentage + '%';
+        percentText.innerText = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
