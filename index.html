@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel EBD - Estudo 3: Pastores e Diáconos</title>
+    <title>Painel Inteligente EBD - Aulas</title>
     <style>
         :root {
             --primary: #2c3e50;
-            --accent: #2980b9;
+            --accent: #3498db;
             --bg: #f4f7f6;
-            --text: #2c3e50;
-            --completed: #bdc3c7;
-            --white: #ffffff;
+            --card-bg: #ffffff;
+            --text: #333;
             --success: #27ae60;
+            --pending: #95a5a6;
         }
 
         body {
@@ -24,523 +24,279 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
 
-        /* Barra de Progresso Superior */
-        .progress-header {
-            position: fixed;
-            top: 0;
+        header {
             width: 100%;
-            background: var(--white);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            padding: 10px 0;
-        }
-
-        .bar-container {
-            width: 90%;
-            background: #e0e0e0;
-            height: 15px;
-            border-radius: 10px;
-            margin: 5px auto;
-            overflow: hidden;
-        }
-
-        #progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #3498db, #2980b9);
-            transition: width 0.4s ease;
-        }
-
-        .progress-info {
-            text-align: center;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        /* Container Principal */
-        .main-container {
-            width: 95%;
-            max-width: 700px;
-            margin-top: 85px;
-            margin-bottom: 40px;
-        }
-
-        .header-box {
             background: var(--primary);
             color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
+        p.subtitle { margin-top: 8px; color: #bdc3c7; font-size: 0.95rem; }
+
+        /* Controles de Filtro e Busca */
+        .controls-container {
+            width: 90%;
+            max-width: 900px;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        /* Cards Estilizados */
-        .card {
-            background: var(--white);
-            margin-bottom: 12px;
-            border-radius: 10px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border-left: 6px solid #ccc;
-        }
-
-        .card.active { border-left-width: 10px; transform: scale(1.01); }
-        .card.done { 
-            background: #f9f9f9; 
-            border-left-color: var(--completed) !important;
-        }
-        .card.done .card-title { 
-            text-decoration: line-through; 
-            color: #95a5a6; 
-        }
-
-        .card-header {
-            padding: 15px;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin: -20px auto 30px auto;
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
             align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
         }
 
-        .card-title {
+        .search-box {
+            flex: 1 1 300px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus { border-color: var(--accent); }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex: 1 1 200px;
+        }
+
+        .filters select {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            outline: none;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        /* Grid de Aulas */
+        .grid-aulas {
+            width: 90%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 50px;
+        }
+
+        .card-aula {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border-left: 6px solid transparent;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-aula:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-aula.disponivel { border-left-color: var(--success); }
+        .card-aula.pendente { border-left-color: var(--pending); opacity: 0.8; pointer-events: none; }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
             font-weight: bold;
-            font-size: 1.05rem;
+            width: fit-content;
+            margin-bottom: 15px;
         }
 
-        .card-body {
-            display: none;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            background: #fff;
+        .disponivel .status-badge { background: #e8f5e9; color: var(--success); }
+        .pendente .status-badge { background: #f4f4f4; color: var(--pending); }
+
+        .aula-data { font-size: 0.85rem; color: #7f8c8d; font-weight: bold; margin-bottom: 5px; }
+        .aula-titulo { font-size: 1.15rem; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
+        .aula-tema { font-size: 0.95rem; color: #555; line-height: 1.4; margin-bottom: 15px; flex-grow: 1; }
+        .aula-link { font-size: 0.75rem; color: #aaa; border-top: 1px solid #eee; padding-top: 10px; word-break: break-all; }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
         }
 
-        .card.active .card-body { display: block; }
-
-        .bible-verse {
-            background: #fff9c4;
-            padding: 12px;
-            border-radius: 6px;
-            font-style: italic;
-            border-left: 3px solid #fbc02d;
-            margin: 10px 0;
+        @media (max-width: 600px) {
+            .controls-container { flex-direction: column; align-items: stretch; }
+            .filters { flex-direction: column; }
         }
-
-        .app-box {
-            background: #e8f5e9;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            border-left: 3px solid #4caf50;
-            font-size: 0.95rem;
-        }
-
-        .question-box {
-            background: #e3f2fd;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-            border: 1px dashed #2196f3;
-        }
-
-        .suggested-answers {
-            font-size: 0.9rem;
-            margin-top: 8px;
-            color: #555;
-            line-height: 1.4;
-        }
-
-        .qualities-list {
-            column-count: 2;
-            padding: 0;
-            margin: 10px 0;
-            list-style-type: none;
-        }
-
-        .qualities-list li {
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-            color: #444;
-        }
-
-        .qualities-list li::before {
-            content: "✔ ";
-            color: var(--success);
-        }
-
-        /* Cores das Bordas por Bloco */
-        .c-intro { border-left-color: #9b59b6; }
-        .c-blu { border-left-color: #3498db; }
-        .c-gre { border-left-color: #2ecc71; }
-        .c-yel { border-left-color: #f1c40f; }
-        .c-special { border-left-color: #e67e22; }
-
-        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="progress-header">
-    <div class="progress-info">Progresso da Aula: <span id="percent">0%</span></div>
-    <div class="bar-container">
-        <div id="progress-fill"></div>
-    </div>
-</div>
+    <header>
+        <h1>Acervo de Aulas - EBD</h1>
+        <p class="subtitle">ADSA Brasil - Embu Guaçu</p>
+    </header>
 
-<div class="main-container">
-    <div class="header-box">
-        <h2 style="margin:0">ESTUDO 3 – 1 TIMÓTEO 3</h2>
-        <small>A IGREJA, SEUS PASTORES E DIÁCONOS</small>
-    </div>
-
-    <div class="card c-intro" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">📖 Texto Áureo e Verdade Prática</span>
+    <div class="controls-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar por tema, livro ou data..." oninput="filtrarAulas()">
         </div>
-        <div class="card-body">
-            <div class="bible-verse">
-                <strong>📝 Texto Áureo:</strong><br>
-                “...a igreja do Deus vivo, coluna e baluarte da verdade.” (1 Timóteo 3.15)
-            </div>
-            <div class="app-box">
-                <strong>✨ Verdade Prática:</strong><br>
-                A igreja é o fundamento da verdade, por isso devemos cuidar bem dela.
-            </div>
-        </div>
-    </div>
-
-    <div class="card c-intro" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">🎯 Introdução</span>
-        </div>
-        <div class="card-body">
-            <p>O foco do capítulo não é cargo ou status, mas <strong>caráter, testemunho e serviço</strong>.</p>
-            <div class="app-box">
-                📌 <strong>Ilustração:</strong> Uma coluna de prédio rachada coloca tudo em risco. Liderança sem estrutura espiritual ameaça a igreja.
-            </div>
-            <div class="question-box">
-                👉 <strong>Por que o caráter é mais importante que o cargo?</strong>
-                <div class="suggested-answers">
-                    1. Porque o cargo passa, mas o testemunho permanece.<br>
-                    2. Porque pessoas seguem exemplos.
-                </div>
-            </div>
+        <div class="filters">
+            <select id="monthSelect" onchange="filtrarAulas()">
+                <option value="all">Todos os Meses</option>
+                <option value="01">Janeiro</option>
+                <option value="02">Fevereiro</option>
+                <option value="03">Março</option>
+                <option value="04">Abril</option>
+                <option value="05">Maio</option>
+                <option value="06">Junho</option>
+                <option value="07">Julho</option>
+                <option value="08">Agosto</option>
+                <option value="09">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+            </select>
+            <select id="yearSelect" onchange="filtrarAulas()">
+                <option value="all">Todos os Anos</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+            </select>
         </div>
     </div>
 
-    <div class="card c-blu" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">🟦 I. UM BOM PASTOR (3.1–7)</span>
-        </div>
-        <div class="card-body">
-            <p><strong>1. Chamado e Qualidades:</strong> O ministério é uma "excelente obra", mas exige responsabilidade extrema.</p>
-            <ul class="qualities-list">
-                <li>Irrepreensível</li>
-                <li>Sóbrio</li>
-                <li>Temperante</li>
-                <li>Hospitaleiro</li>
-                <li>Apto para ensinar</li>
-                <li>Não avarento</li>
-                <li>Não violento</li>
-            </ul>
-            <div class="question-box">
-                👉 <strong>O que vale mais: talento ou caráter?</strong>
-                <div class="suggested-answers">1. Caráter, porque sustenta o ministério. / 2. Talento sem caráter destrói a confiança.</div>
-            </div>
-
-            <p><strong>2. Atitudes perante a Família:</strong> A casa é o primeiro púlpito. Quem não governa a casa não cuida da igreja.</p>
-            <div class="question-box">
-                👉 <strong>Por que a família revela o caráter?</strong>
-                <div class="suggested-answers">1. Em casa ninguém vive de aparência. / 2. O lar mostra quem a pessoa realmente é.</div>
-            </div>
-
-            <p><strong>3. Reputação e Maturidade:</strong> Não pode ser neófito (novo convertido) para não cair na soberba.</p>
-        </div>
+    <div class="grid-aulas" id="gridAulas">
+        <!-- Aulas geradas pelo JavaScript -->
     </div>
 
-    <div class="card c-gre" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">🟩 II. UM BOM DIÁCONO (3.8–13)</span>
-        </div>
-        <div class="card-body">
-            <p><strong>1. Qualificação e Experiência:</strong> Diácono significa "servo". Alguém que auxilia na ordem e serve pessoas.</p>
-            <div class="question-box">
-                👉 <strong>O que significa servir na igreja?</strong>
-                <div class="suggested-answers">1. Ajudar com humildade. / 2. Fazer sem buscar reconhecimento.</div>
-            </div>
+    <script>
+        // 1. BASE DE DADOS DAS AULAS
+        // Para adicionar uma aula nova, basta colocar aqui.
+        // O sistema gera o link automaticamente no padrão aulaDDMMAAAA.html
+        const cronograma = [
+            // Aulas de Maio de 2026 (Período Atual como Exemplo)
+            { id: "01", livro: "1 Timóteo 1", tema: "A Missão do Pastor Timóteo", data: "03/05/2026", disponivel: true },
+            { id: "02", livro: "1 Timóteo 2", tema: "A Oração e o Comportamento", data: "10/05/2026", disponivel: true },
+            { id: "03", livro: "1 Timóteo 3", tema: "A Igreja, seus Pastores e Diáconos", data: "17/05/2026", disponivel: true },
+            { id: "04", livro: "1 Timóteo 4", tema: "Alerta contra a Apostasia", data: "24/05/2026", disponivel: false },
+            { id: "05", livro: "1 Timóteo 5", tema: "Cuidando Bem das Diferentes Gerações", data: "31/05/2026", disponivel: false },
+            
+            // Aulas Anteriores (Exemplo Abril)
+            { id: "13", livro: "Ezequiel 47", tema: "O rio da vida", data: "26/04/2026", disponivel: true },
+            { id: "12", livro: "Ezequiel 40", tema: "A glória do Senhor voltando", data: "19/04/2026", disponivel: true }
+        ];
 
-            <p><strong>2. Mulheres fiéis (3.11):</strong> Devem ser respeitáveis, temperantes e fiéis. Equilíbrio é essencial.</p>
-            <div class="question-box">
-                👉 <strong>Por que a fidelidade é essencial?</strong>
-                <div class="suggested-answers">1. Deus honra os fiéis. / 2. A igreja precisa confiar na liderança.</div>
-            </div>
-
-            <p><strong>3. A Honra do Serviço:</strong> Na igreja, quem mais serve é quem mais cresce (3.13).</p>
-        </div>
-    </div>
-
-    <div class="card c-yel" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">🟨 III. IGREJA, COLUNA DA VERDADE (3.14–16)</span>
-        </div>
-        <div class="card-body">
-            <p><strong>1. Orientação Doutrinária:</strong> Paulo escreve para que saibamos "como se deve proceder na casa de Deus".</p>
-            <p><strong>2. Baluarte da Verdade:</strong> A igreja sustenta a mensagem do Evangelho num mundo de confusão.</p>
-            <div class="question-box">
-                👉 <strong>Como a igreja preserva a verdade hoje?</strong>
-                <div class="suggested-answers">1. Ensinando a Bíblia fielmente. / 2. Vivendo o Evangelho na prática.</div>
-            </div>
-            <p><strong>3. O Mistério da Piedade:</strong> Tudo gira em torno de Jesus e Sua glória (3.16).</p>
-        </div>
-    </div>
-
-    <div class="card c-special" onclick="handleCardClick(this)">
-        <div class="card-header">
-            <span class="card-title">🎯 Dinâmica e Aplicação Final</span>
-        </div>
-        <div class="card-body">
-            <p><strong>Pergunta à classe:</strong> O que sustenta uma igreja forte?</p>
-            <div class="app-box">
-                <strong>Respostas para o Quadro:</strong><br>
-                ✔ Palavra & oração<br>
-                ✔ Liderança íntegra<br>
-                ✔ Serviço humilde
-            </div>
-            <p style="text-align:center;"><strong>Aplicação Pessoal:</strong> Antes de desejar um cargo, pergunte: Estou pronto para servir? Meu testemunho sustenta meu chamado?</p>
-        </div>
-    </div>
-
-</div>
-
-<footer>
-    Professor, Deus abençoe sua aula! <br>
-    Painel Interativo EBD • Estudo 3
-</footer>
-
-<script>
-    function handleCardClick(card) {
-        if (card.classList.contains('active')) {
-            card.classList.remove('active');
-            card.classList.add('done');
-        } else {
-            card.classList.add('active');
+        // 2. FUNÇÃO PARA GERAR O NOME DO ARQUIVO (aulaDDMMAAAA.html)
+        function gerarNomeArquivo(dataString) {
+            // Pega "03/05/2026" e transforma em "aula03052026.html"
+            const partes = dataString.split('/');
+            return `aula${partes[0]}${partes[1]}${partes[2]}.html`;
         }
-        updateProgress();
-    }
 
-    function updateProgress() {
-        const cards = document.querySelectorAll('.card');
-        const completed = document.querySelectorAll('.card.done');
-        const progressFill = document.getElementById('progress-fill');
-        const percentText = document.getElementById('percent');
-        
-        const percentage = Math.round((completed.length / cards.length) * 100);
-        
-        progressFill.style.width = percentage + '%';
-        percentText.innerText = percentage + '%';
-    }
-</script>
+        // 3. INICIALIZAÇÃO INTELIGENTE (Pega a data atual do usuário)
+        function configurarFiltroInicial() {
+            const dataAtual = new Date();
+            // getMonth() retorna de 0 a 11. Somamos 1 e formatamos com zero à esquerda (ex: "05")
+            const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
+            const anoAtual = String(dataAtual.getFullYear());
 
-</body>
-</html>
- lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
-  <title>Portal do Professor — EBD Ezequiel</title>
-  <style>
-    :root {
-      --bg-dark: #1e272e;
-      --panel: #2f3640;
-      --accent: #fbc531;
-      --btn: #00a8ff;
-      --success: #27ae60;
-      --text: #ecf0f1;
-    }
+            document.getElementById('monthSelect').value = mesAtual;
+            
+            // Verifica se o ano atual existe no select, senão deixa em "all"
+            const yearSelect = document.getElementById('yearSelect');
+            if ([...yearSelect.options].some(opt => opt.value === anoAtual)) {
+                yearSelect.value = anoAtual;
+            }
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    header {
-      width: 100%;
-      background: var(--panel);
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      box-sizing: border-box;
-    }
-
-    h1 { color: var(--accent); margin: 0; font-size: 1.8rem; }
-    p.subtitle { color: #cbd5e1; margin-top: 5px; font-size: 0.9rem; }
-
-    .search-container {
-      width: 90%;
-      max-width: 600px;
-      margin: 30px 0;
-      position: relative;
-    }
-
-    #classSearch {
-      width: 100%;
-      padding: 15px 20px;
-      border-radius: 30px;
-      border: none;
-      background: #fff;
-      font-size: 1.1rem;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      outline: none;
-      color: #333;
-    }
-
-    .grid-aulas {
-      width: 90%;
-      max-width: 1000px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      padding-bottom: 50px;
-    }
-
-    .card-aula {
-      background: var(--panel);
-      border-radius: 12px;
-      padding: 20px;
-      transition: transform 0.3s ease, border-color 0.3s ease;
-      border: 2px solid transparent;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-
-    .card-aula:hover {
-      transform: translateY(-5px);
-      border-color: var(--btn);
-      background: #353b48;
-    }
-
-    .status-badge {
-      font-size: 0.7rem;
-      padding: 4px 8px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      font-weight: bold;
-      width: fit-content;
-      margin-bottom: 10px;
-    }
-
-    .pronta { background: var(--success); color: white; }
-    .agendada { background: #718093; color: white; }
-
-    .aula-titulo { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; color: var(--accent); }
-    .aula-tema { font-size: 0.95rem; margin-bottom: 10px; line-height: 1.4; color: #f5f6fa; }
-    .aula-data { color: var(--btn); font-weight: bold; font-size: 0.9rem; }
-    .aula-link { font-size: 0.75rem; color: #95a5a6; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
-
-    footer {
-      padding: 20px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: #718093;
-    }
-
-    @media (max-width: 600px) {
-      .grid-aulas { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>Painel do Professor EBD</h1>
-    <p class="subtitle">Estudos em Ezequiel — Comentários: José Carlos dos Santos e Pádua Rodrigues</p>
-  </header>
-
-  <div class="search-container">
-    <input type="text" id="classSearch" placeholder="Pesquisar lição, tema ou data..." onkeyup="filterClasses()">
-  </div>
-
-  <div class="grid-aulas" id="gridAulas">
-    </div>
-
-  <footer>
-    © 2026 ADSA Brasil - Embu Guaçu
-  </footer>
-
-  <script>
-    const aulas = [
-      { id: "01", tema: "O livro de Ezequiel e sua visão inaugural.", ref: "Ezequiel 1", data: "05/01/26", file: "aula050126.html", pronta: true },
-      { id: "02", tema: "O chamado de Ezequiel.", ref: "Ezequiel 2 e 3", data: "12/01/26", file: "aula120126.html", pronta: true },
-      { id: "03", tema: "O fim vem sobre Jerusalém e Israel.", ref: "Ezequiel 7", data: "19/01/26", file: "aula190126.html", pronta: true },
-      { id: "04", tema: "A glória de Deus se retira do templo.", ref: "Ezequiel 8 a 11", data: "26/01/26", file: "aula260126.html", pronta: true },
-      { id: "05", tema: "A profecia verdadeira e as falsas profecias.", ref: "Ezequiel 12 e 13", data: "01/02/26", file: "aula010226.html", pronta: true },
-      { id: "06", tema: "Noé, Daniel e Jó não substituem você.", ref: "Ezequiel 14", data: "08/02/26", file: "ebd_aulas/aula080226.html", pronta: true },
-      { id: "07", tema: "A alma que pecar, essa morrerá.", ref: "Ezequiel 18", data: "15/02/26", file: "ebd_aulas/ula150226.html", pronta: false },
-      { id: "08", tema: "A queda do querubim ungido.", ref: "Ezequiel 28", data: "22/02/26", file: "ebd_aulas/aula220226.html", pronta: false },
-      { id: "09", tema: "O divino pastor.", ref: "Ezequiel 34", data: "01/03/26", file: "ebd_aulas/aula010326.html", pronta: false },
-      { id: "10", tema: "O vale dos ossos secos.", ref: "Ezequiel 37", data: "08/03/26", file: "ebd_aulas/aula080326.html", pronta: false },
-      { id: "11", tema: "A batalha escatológica.", ref: "Ezequiel 38 e 39", data: "16/03/26", file: "ebd_aulas/aula150326.html", pronta: false },
-      { id: "12", tema: "A glória do Senhor voltando para o templo.", ref: "Ezequiel 40 a 46", data: "22/03/26", file: "ebd_aulas/aula220326.html", pronta: false },
-      { id: "13", tema: "O rio da vida e a nova cidade 'O Senhor está ali'.", ref: "Ezequiel 47 e 48", data: "29/03/26", file: "ebd_aulas/aula290326.html", pronta: false }
-    ];
-
-    const baseUrl = "https://adsabrasil-embuguacu.github.io/";
-
-    function renderAulas() {
-      const grid = document.getElementById('gridAulas');
-      grid.innerHTML = "";
-
-      aulas.forEach(aula => {
-        const linkCompleto = baseUrl + aula.file;
-        const card = document.createElement('a');
-        card.href = linkCompleto;
-        card.className = 'card-aula';
-        card.setAttribute('data-search', `estudo ${aula.id} ${aula.tema} ${aula.ref} ${aula.data}`.toLowerCase());
-
-        card.innerHTML = `
-          <div>
-            <span class="status-badge ${aula.pronta ? 'pronta' : 'agendada'}">
-              ${aula.pronta ? '● Disponível' : '○ Aguardando'}
-            </span>
-            <div class="aula-titulo">ESTUDO ${aula.id} | ${aula.ref}</div>
-            <div class="aula-tema">${aula.tema}</div>
-            <div class="aula-data">📅 ${aula.data}</div>
-          </div>
-          <div class="aula-link">Link: ${aula.file}</div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function filterClasses() {
-      const input = document.getElementById('classSearch').value.toLowerCase();
-      const cards = document.getElementsByClassName('card-aula');
-
-      for (let i = 0; i < cards.length; i++) {
-        const content = cards[i].getAttribute('data-search');
-        if (content.includes(input)) {
-          cards[i].style.display = "flex";
-        } else {
-          cards[i].style.display = "none";
+            filtrarAulas();
         }
-      }
-    }
 
-    renderAulas();
-  </script>
+        // 4. LÓGICA DE FILTRAGEM E RENDERIZAÇÃO
+        function filtrarAulas() {
+            const termoBusca = document.getElementById('searchInput').value.toLowerCase();
+            const mesSelecionado = document.getElementById('monthSelect').value;
+            const anoSelecionado = document.getElementById('yearSelect').value;
+
+            const grid = document.getElementById('gridAulas');
+            grid.innerHTML = ""; // Limpa a tela
+
+            // Filtra o array
+            const aulasFiltradas = cronograma.filter(aula => {
+                const partesData = aula.data.split('/'); // [DD, MM, AAAA]
+                const mesAula = partesData[1];
+                const anoAula = partesData[2];
+
+                // Regras de filtro
+                const bateBusca = aula.tema.toLowerCase().includes(termoBusca) || 
+                                  aula.livro.toLowerCase().includes(termoBusca) || 
+                                  aula.data.includes(termoBusca);
+                
+                const bateMes = mesSelecionado === 'all' || mesSelecionado === mesAula;
+                const bateAno = anoSelecionado === 'all' || anoSelecionado === anoAula;
+
+                return bateBusca && bateMes && bateAno;
+            });
+
+            // Ordena por data (opcional, aqui mantemos a ordem do array)
+            
+            // Renderiza na tela
+            if (aulasFiltradas.length === 0) {
+                grid.innerHTML = `<div class="no-results">Nenhuma aula encontrada para este período ou busca.</div>`;
+                return;
+            }
+
+            aulasFiltradas.forEach(aula => {
+                const nomeArquivo = gerarNomeArquivo(aula.data);
+                const baseUrl = window.location.pathname.includes('ebd_aulas') ? '' : 'ebd_aulas/';
+                const linkFinal = aula.disponivel ? `${baseUrl}${nomeArquivo}` : '#';
+                
+                const classeStatus = aula.disponivel ? 'disponivel' : 'pendente';
+                const textoStatus = aula.disponivel ? '🟢 Disponível' : '⏳ Em Breve';
+
+                const card = document.createElement('a');
+                card.href = linkFinal;
+                card.className = `card-aula ${classeStatus}`;
+
+                card.innerHTML = `
+                    <div class="status-badge">${textoStatus}</div>
+                    <div class="aula-data">📅 ${aula.data}</div>
+                    <div class="aula-titulo">Estudo ${aula.id} | ${aula.livro}</div>
+                    <div class="aula-tema">${aula.tema}</div>
+                    <div class="aula-link">Arquivo: ${nomeArquivo}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Inicia o painel rodando as funções
+        window.onload = configurarFiltroInicial;
+
+    </script>
 </body>
 </html>
