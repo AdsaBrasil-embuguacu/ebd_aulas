@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel EBD - Estudo 5: Cuidando das Gerações</title>
+    <style>
+        :root {
+            --primary: #1e272e; /* Azul Marinho */
+            --accent: #e15f41;  /* Terracota */
+            --bg: #f4f6f7;
+            --text: #2f3542;
+            --completed: #bdc3c7;
+            --white: #ffffff;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de Progresso Superior */
+        .progress-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .bar-container {
+            width: 90%;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff7f50, #e15f41);
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Container Principal */
+        .main-container {
+            width: 95%;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
+        }
+
+        .header-box {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        /* Cards Estilizados */
+        .card {
+            background: var(--white);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
+        }
+
+        .card.active { border-left-width: 10px; transform: scale(1.01); }
+        .card.done { 
+            background: #f9f9f9; 
+            border-left-color: var(--completed) !important;
+        }
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
+        }
+
+        .card-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .card-body {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .card.active .card-body { display: block; }
+
+        /* Estilos Internos */
+        .bible-verse {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
+            font-style: italic;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
+        }
+
+        .app-box {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+            font-size: 0.95rem;
+        }
+
+        .example-box {
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #747d8c;
+            font-size: 0.9rem;
+            color: #2f3542;
+        }
+
+        .question-box {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2980b9;
+        }
+
+        .suggested-answers {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        /* Cores das Bordas por Bloco */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #3498db; }
+        .c-gre { border-left-color: #2ecc71; }
+        .c-yel { border-left-color: #f1c40f; }
+        .c-special { border-left-color: var(--accent); }
+
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="progress-header">
+    <div class="progress-info">Progresso da Aula: <span id="percent">0%</span></div>
+    <div class="bar-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header-box">
+        <h2 style="margin:0">ESTUDO 5 – 1 TIMÓTEO 5</h2>
+        <small>Cuidando Bem das Diferentes Gerações e dos Obreiros</small>
+    </div>
+
+    <!-- LEITURA E INTRODUÇÃO -->
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📖 Texto Áureo e Introdução</span>
+        </div>
+        <div class="card-body">
+            <div class="bible-verse">
+                <strong>📝 Texto Áureo:</strong><br>
+                “Não repreendas ao homem idoso; antes, exorta-o como a pai...” (1 Timóteo 5.1)
+            </div>
+            <div class="app-box">
+                <strong>✨ Verdade Prática:</strong><br>
+                Todos, principalmente os líderes, devem cuidar bem das pessoas na igreja.
+            </div>
+            <p>A igreja não é apenas uma organização — <strong>é uma família</strong>. Dentro dela temos idosos, jovens, líderes e necessitados. Cada grupo exige sabedoria e amor.</p>
+            
+            <div class="example-box">
+                💡 <strong>Ilustração Inicial:</strong> Como tratamos pessoas da nossa família em casa? É exatamente assim que devemos tratar a igreja.
+            </div>
+
+            <div class="question-box">
+                👉 <strong>Por que é perigoso tratar a igreja sem amor e respeito?</strong>
+                <div class="suggested-answers">
+                    1. Porque gera conflitos.<br>
+                    2. Porque destrói relacionamentos.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO I -->
+    <div class="card c-blu" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟦 I. AS DIVERSAS GERAÇÕES (5.1–16)</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Homens idosos e jovens (5.1):</strong> Idosos como pais, jovens como irmãos. Respeito e equilíbrio.</p>
+            <div class="example-box">💡 <strong>Exemplo:</strong> Corrigir um idoso com grosseria gera divisão. Com respeito, gera honra.</div>
+            <div class="question-box">
+                👉 <strong>Como corrigir alguém mais velho sem desrespeitar?</strong>
+                <div class="suggested-answers">1. Com sabedoria e humildade. / 2. Com palavras suaves.</div>
+            </div>
+
+            <p><strong>2. Mulheres idosas e jovens (5.2):</strong> Idosas como mães, jovens como irmãs (com pureza comportamental).</p>
+            <div class="example-box">💡 <strong>Exemplo:</strong> Evitar brincadeiras ou intimidades que gerem escândalo.</div>
+            <div class="question-box">
+                👉 <strong>Por que a pureza é tão importante na igreja?</strong>
+                <div class="suggested-answers">1. Para preservar o testemunho. / 2. Para evitar escândalos.</div>
+            </div>
+
+            <p><strong>3. Viúvas (5.3-4):</strong> A família biológica tem a primeira responsabilidade. A igreja ajuda, mas não substitui.</p>
+            <div class="question-box">
+                👉 <strong>Por que cuidar da família é parte da fé?</strong>
+                <div class="suggested-answers">1. Porque demonstra amor verdadeiro. / 2. Porque agrada a Deus.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO II -->
+    <div class="card c-gre" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟩 II. PASTORES DA IGREJA (5.17–20)</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Dignidade e sustento (5.17-18):</strong> O obreiro digno merece reconhecimento e honra.</p>
+            <div class="example-box">💡 <strong>Exemplo:</strong> Valorizar o pastor não é idolatria — é reconhecimento do trabalho.</div>
+            <div class="question-box">
+                👉 <strong>Como podemos honrar nossos líderes?</strong>
+                <div class="suggested-answers">1. Respeitando e orando por eles. / 2. Ajudando e apoiando o ministério.</div>
+            </div>
+
+            <p><strong>2. Apuração de denúncias (5.19):</strong> Não aceitar acusações sem provas (fofocas, "ouvi dizer").</p>
+            <div class="question-box">
+                👉 <strong>Por que devemos ter cuidado com acusações?</strong>
+                <div class="suggested-answers">1. Para não cometer injustiça. / 2. Para não espalhar mentiras.</div>
+            </div>
+
+            <p><strong>3. Correção exemplar (5.20):</strong> Pecado comprovado e persistente pode exigir correção pública para proteger o rebanho.</p>
+            <div class="app-box">
+                📌 <strong>Frase Forte:</strong> "O pecado escondido contamina, mas a correção traz temor e restauração."
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO III -->
+    <div class="card c-yel" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟨 III. OUTROS CONSELHOS IMPORTANTES</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. Imparcialidade (5.21-22):</strong> Não favorecer ninguém. Não colocar pessoas em posição sem o devido preparo.</p>
+            <div class="question-box">
+                👉 <strong>Por que não devemos agir por favoritismo?</strong>
+                <div class="suggested-answers">1. Porque Deus é justo. / 2. Porque prejudica a igreja a longo prazo.</div>
+            </div>
+
+            <p><strong>2. Cuidado pessoal (5.23):</strong> Espiritualidade não substitui o cuidado físico (o líder também cuida da saúde).</p>
+            <div class="question-box">
+                👉 <strong>Por que cuidar do corpo também é importante?</strong>
+                <div class="suggested-answers">1. Porque é templo do Espírito Santo. / 2. Porque afeta a disposição no ministério.</div>
+            </div>
+
+            <p><strong>3. Discernimento (5.24-25):</strong> Nem tudo (pecados ou boas obras) aparece na hora. Não julgue rápido.</p>
+            <div class="question-box">
+                👉 <strong>Por que precisamos de paciência para avaliar pessoas?</strong>
+                <div class="suggested-answers">1. Porque o tempo revela o caráter real. / 2. Porque evita erros precipitados.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONCLUSÃO E DINÂMICA -->
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 Conclusão e Dinâmica Forte</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Os 3 Pilares da Igreja Saudável:</strong><br> ✔ Respeito entre gerações<br> ✔ Honra aos líderes<br> ✔ Discernimento nas decisões</p>
+            
+            <div class="example-box">
+                <strong>📌 Dinâmica de Encerramento:</strong><br>
+                Peça para a classe completar em voz alta:<br>
+                "Na igreja, devemos tratar..."<br>
+                • Idosos como 👉 <strong>PAIS / MÃES</strong><br>
+                • Jovens como 👉 <strong>IRMÃOS / IRMÃS</strong><br>
+                • Líderes com 👉 <strong>HONRA</strong>
+            </div>
+
+            <div class="app-box">
+                <strong>📝 Responda (Fixação):</strong><br>
+                1. Como tratar velhos e jovens? <em>Como pais, mães, irmãos e irmãs.</em><br>
+                2. Objetivo da correção pública? <em>Manter a santidade e gerar temor.</em><br>
+                3. Como julgar pessoas? <em>Com discernimento, sem pressa e sem parcialidade.</em>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Estudo 5
+</footer>
+
+<script>
+    function handleCardClick(card) {
+        if (card.classList.contains('active')) {
+            card.classList.remove('active');
+            card.classList.add('done');
+        } else {
+            card.classList.add('active');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.card');
+        const completed = document.querySelectorAll('.card.done');
+        const progressFill = document.getElementById('progress-fill');
+        const percentText = document.getElementById('percent');
+        
+        const percentage = Math.round((completed.length / cards.length) * 100);
+        
+        progressFill.style.width = percentage + '%';
+        percentText.innerText = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
