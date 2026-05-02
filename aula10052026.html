@@ -4,153 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel EBD - Estudo 6: Amor ao Dinheiro e Contentamento</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* 1. SETUP & CORE DESIGN */
         :root {
-            --primary: #1e293b; /* Dark Navy */
-            --secondary: #c2410c; /* Terracotta */
-            --accent: #27ae60; /* Success Green */
-            --bg: #f8f5f2; /* Professional Cream */
-            --white: #ffffff;
-            --text-dark: #334155;
-            --muted: #94a3b8;
+            --primary: #1e272e; /* Azul Marinho */
+            --accent: #e15f41;  /* Terracota */
+            --bg: #f4f6f7;
+            --text: #2f3542;
             --completed: #bdc3c7;
+            --white: #ffffff;
+            --success: #27ae60;
         }
 
-        * { box-sizing: border-box; }
-
         body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
-            color: var(--text-dark);
-            font-family: 'Lato', sans-serif;
+            color: var(--text);
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* 1.1 PROGRESS HEADER (Fixed) */
+        /* Barra de Progresso Superior */
         .progress-header {
             position: fixed;
             top: 0;
             width: 100%;
             background: var(--white);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            padding: 12px 0;
-            border-bottom: 2px solid #e2e8f0;
+            padding: 10px 0;
         }
 
         .bar-container {
             width: 90%;
-            max-width: 1280px;
-            background: #e2e8f0;
-            height: 12px;
-            border-radius: 20px;
-            margin: 8px auto;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
             overflow: hidden;
         }
 
         #progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, var(--secondary), #ea580c);
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #ff7f50, #e15f41);
+            transition: width 0.4s ease;
         }
 
         .progress-info {
             text-align: center;
-            font-size: 0.9rem;
-            font-weight: 700;
-            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
             color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        /* 2. MAIN CONTAINER */
+        /* Container Principal */
         .main-container {
             width: 95%;
-            max-width: 800px;
-            margin-top: 100px;
-            margin-bottom: 60px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
         }
 
-        /* 3. HEADER BOX */
         .header-box {
             background: var(--primary);
-            color: var(--white);
-            padding: 40px 30px;
-            border-radius: 16px;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(30, 41, 59, 0.2);
+            border-bottom: 4px solid var(--accent);
         }
 
-        .header-box h1 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2.2rem;
-            margin: 0;
-            letter-spacing: -1px;
-        }
-
-        .header-box p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-top: 10px;
-        }
-
-        .header-box::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -10%;
-            width: 40%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: rotate(45deg);
-        }
-
-        /* 4. INTERACTIVE CARDS */
+        /* Cards Estilizados */
         .card {
             background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            border-left: 6px solid #e2e8f0;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
             overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
         }
 
-        .card.active {
-            border-left-color: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .card.done {
-            background: #f8fafc;
+        .card.active { border-left-width: 10px; transform: scale(1.01); }
+        .card.done { 
+            background: #f9f9f9; 
             border-left-color: var(--completed) !important;
-            opacity: 0.7;
         }
-
-        .card.done .card-title {
-            text-decoration: line-through;
-            color: var(--muted);
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
         }
 
         .card-header {
-            padding: 20px 25px;
+            padding: 15px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -158,102 +108,71 @@
         }
 
         .card-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 1.15rem;
-            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.05rem;
         }
 
         .card-body {
             display: none;
-            padding: 25px;
-            border-top: 1px solid #f1f5f9;
-            line-height: 1.6;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
         }
 
         .card.active .card-body { display: block; }
 
-        /* 5. CONTENT STYLING */
+        /* Estilos Internos */
         .bible-verse {
-            background: #fffef0;
-            padding: 15px 20px;
-            border-radius: 8px;
-            border-left: 4px solid #facc15;
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
             font-style: italic;
-            margin: 15px 0;
-            font-size: 0.95rem;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
         }
 
         .app-box {
-            background: #f0fdf4;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-            margin: 15px 0;
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
             font-size: 0.95rem;
         }
 
-        .illustration-box {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed var(--muted);
-            margin: 15px 0;
-            font-weight: 700;
+        .example-box {
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #747d8c;
+            font-size: 0.9rem;
+            color: #2f3542;
         }
 
         .question-box {
-            background: #eff6ff;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #3b82f6;
-            margin-top: 20px;
-        }
-
-        .question-box strong {
-            color: #1d4ed8;
-            display: block;
-            margin-bottom: 8px;
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2980b9;
         }
 
         .suggested-answers {
-            margin-top: 10px;
             font-size: 0.9rem;
-            color: #475569;
-            padding-left: 15px;
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.4;
         }
 
-        .status-badge {
-            font-size: 0.7rem;
-            font-weight: 700;
-            background: var(--primary);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display: inline-block;
-        }
+        /* Cores das Bordas por Bloco */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #3498db; }
+        .c-gre { border-left-color: #2ecc71; }
+        .c-yel { border-left-color: #f1c40f; }
+        .c-special { border-left-color: var(--accent); }
 
-        /* Cores de borda por seção */
-        .c-intro { border-left-color: var(--secondary); }
-        .c-blue { border-left-color: #3b82f6; } /* Tópico I */
-        .c-red { border-left-color: #ef4444; }  /* Tópico II */
-        .c-green { border-left-color: #10b981; } /* Tópico III */
-        .c-special { border-left-color: #f59e0b; } /* Conclusão */
-
-        footer {
-            margin-top: 40px;
-            padding-bottom: 40px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 600px) {
-            .header-box h1 { font-size: 1.8rem; }
-            .card-title { font-size: 1rem; }
-        }
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -266,35 +185,33 @@
 </div>
 
 <div class="main-container">
-    
     <div class="header-box">
-        <h1>ESTUDO 6 – 1 TIMÓTEO 6</h1>
-        <p>Amor ao Dinheiro e Contentamento</p>
+        <h2 style="margin:0">ESTUDO 6 – 1 TIMÓTEO 6</h2>
+        <small>Amor ao Dinheiro e Contentamento</small>
     </div>
 
+    <!-- LEITURA E INTRODUÇÃO -->
     <div class="card c-intro" onclick="handleCardClick(this)">
         <div class="card-header">
-            <span class="card-title">🔰 Introdução e Abertura</span>
-            <i class="fa-solid fa-chevron-down"></i>
+            <span class="card-title">📖 Texto Áureo e Introdução</span>
         </div>
         <div class="card-body">
-            <span class="status-badge">Verdade Prática</span>
-            <p>Os cristãos devem testemunhar a fé também na vida financeira e social.</p>
-            
             <div class="bible-verse">
-                "Porque o amor do dinheiro é raiz de todos os males..." (1 Tm 6.10)
+                <strong>📝 Texto Áureo:</strong><br>
+                “Porque o amor do dinheiro é raiz de todos os males...” (1 Timóteo 6.10)
             </div>
-
-            <p>Vivemos em uma geração que ensina: “Você precisa ter mais” e “Você nunca pode se contentar”. Mas a Bíblia ensina que a verdadeira riqueza é uma vida com Deus.</p>
-
-            <div class="illustration-box">
-                💡 <strong>Dinâmica Rápida:</strong> Mostre um objeto (celular, dinheiro) e pergunte: "Isso aqui pode comprar felicidade?"<br>
-                <em>Resposta da lição: "Pode comprar conforto… mas não paz."</em>
+            <div class="app-box">
+                <strong>✨ Verdade Prática:</strong><br>
+                Os cristãos devem testemunhar a fé também na vida financeira e social.
+            </div>
+            <p>Paulo encerra a carta tratando de algo muito atual: <strong>Dinheiro, ambição e contentamento</strong>. Vivemos em uma geração que ensina: “Você precisa ter mais”. Mas a Bíblia ensina o contrário: “A verdadeira riqueza é uma vida com Deus.”</p>
+            
+            <div class="example-box">
+                💡 <strong>Dinâmica de Abertura:</strong> Mostre um objeto (celular, dinheiro, relógio) e pergunte: “Isso aqui pode comprar felicidade?”. Depois diga: “Pode comprar conforto… mas não paz.”
             </div>
 
             <div class="question-box">
-                <strong>❓ Pergunta de Abertura:</strong>
-                Por que as pessoas nunca estão satisfeitas com o que têm?
+                👉 <strong>Por que as pessoas nunca estão satisfeitas com o que têm?</strong>
                 <div class="suggested-answers">
                     1. Porque sempre querem mais.<br>
                     2. Porque colocam a felicidade nas coisas.
@@ -303,132 +220,130 @@
         </div>
     </div>
 
-    <div class="card c-blue" onclick="handleCardClick(this)">
+    <!-- TÓPICO I -->
+    <div class="card c-blu" onclick="handleCardClick(this)">
         <div class="card-header">
-            <span class="card-title">🟦 I. Relações Sociais na Igreja (6.1–8)</span>
-            <i class="fa-solid fa-chevron-down"></i>
+            <span class="card-title">🟦 I. RELAÇÕES SOCIAIS NA IGREJA (6.1–8)</span>
         </div>
         <div class="card-body">
             <p><strong>1. Patrão e empregado (6.1):</strong> Trabalhe com respeito e honra. Mesmo em ambientes difíceis, o cristão deve ter bom testemunho.</p>
-            
+            <div class="example-box">💡 <strong>Exemplo Atual:</strong> Funcionário que trabalha mal prejudica o nome de Cristo. Funcionário fiel glorifica a Deus.</div>
             <div class="question-box">
-                <strong>❓ Pergunta Interativa:</strong>
-                Seu comportamento no trabalho glorifica ou prejudica o nome de Deus?
-                <div class="suggested-answers">
-                    1. Glorifica quando sou responsável.<br>
-                    2. Prejudica quando ajo com descuido.
-                </div>
+                👉 <strong>Seu comportamento no trabalho glorifica ou prejudica o nome de Deus?</strong>
+                <div class="suggested-answers">1. Glorifica quando sou responsável. / 2. Prejudica quando ajo com descuido.</div>
             </div>
 
-            <p><strong>2. Evite os gananciosos (6.5):</strong> Pessoas que usam a fé para ganhar dinheiro. Eles transformam o evangelho em negócio.</p>
-            
+            <p><strong>2. Evite os gananciosos (6.5):</strong> Pessoas que usam a fé para ganhar dinheiro. Transformam o evangelho em negócio.</p>
+            <div class="example-box">💡 <strong>Exemplo Atual:</strong> “Se você der, Deus é obrigado a te dar” – Fé baseada só em prosperidade.</div>
             <div class="question-box">
-                <strong>❓ Pergunta Interativa:</strong>
-                Qual o perigo de usar a fé para ganhar dinheiro?
-                <div class="suggested-answers">
-                    1. Desvia da verdade.<br>
-                    2. Engana as pessoas.
-                </div>
+                👉 <strong>Qual o perigo de usar a fé para ganhar dinheiro?</strong>
+                <div class="suggested-answers">1. Desvia da verdade. / 2. Engana as pessoas.</div>
             </div>
 
-            <p><strong>3. O poder do contentamento (6.7-8):</strong> “Nada trouxemos, nada levaremos”. Contentamento é paz interior.</p>
-            
+            <p><strong>3. O poder do contentamento (6.7-8):</strong> “Nada trouxemos, nada levaremos”. Contentamento = paz interior.</p>
             <div class="app-box">
-                👉 <strong>Frase Forte:</strong> “Quem tem Deus, já tem o suficiente.”
+                📌 <strong>Frase Forte:</strong> "Quem tem Deus, já tem o suficiente."
+            </div>
+            <div class="question-box">
+                👉 <strong>O que é viver contente?</strong>
+                <div class="suggested-answers">1. Ser grato pelo que tem. / 2. Não depender de coisas materiais.</div>
             </div>
         </div>
     </div>
 
-    <div class="card c-red" onclick="handleCardClick(this)">
+    <!-- TÓPICO II -->
+    <div class="card c-gre" onclick="handleCardClick(this)">
         <div class="card-header">
-            <span class="card-title">🟥 II. Cobiça e o Amor ao Dinheiro (6.9–12)</span>
-            <i class="fa-solid fa-chevron-down"></i>
+            <span class="card-title">🟩 II. COBIÇA E O AMOR AO DINHEIRO (6.9–12)</span>
         </div>
         <div class="card-body">
-            <span class="status-badge" style="background:#ef4444;">Atenção</span>
-            <p><strong>1. Perigo da ganância (6.9):</strong> O desejo exagerado por riqueza é uma armadilha. Pessoas perdem família por dinheiro e trabalham tanto que perdem a Deus.</p>
-            
-            <p><strong>2. O Amor ao dinheiro (6.10):</strong> O problema não é o dinheiro, é o <em>amor</em> a ele. Isso gera ansiedade, afastamento de Deus e sofrimento.</p>
-
-            <div class="app-box">
-                👉 <strong>Frase de Impacto:</strong> “O dinheiro é um ótimo servo, mas um péssimo senhor.”
-            </div>
-
+            <p><strong>1. Perigo da ganância (6.9):</strong> Desejo exagerado por riqueza é uma armadilha.</p>
+            <div class="example-box">💡 <strong>Exemplo Atual:</strong> Pessoas que perdem a família por dinheiro. Trabalham tanto que perdem Deus.</div>
             <div class="question-box">
-                <strong>❓ Pergunta Interativa:</strong>
-                Como saber se alguém ama o dinheiro?
-                <div class="suggested-answers">
-                    1. Vive só por isso.<br>
-                    2. Coloca acima de Deus.
-                </div>
+                👉 <strong>Quando o dinheiro se torna perigoso?</strong>
+                <div class="suggested-answers">1. Quando vira prioridade. / 2. Quando substitui Deus.</div>
             </div>
 
-            <p><strong>3. Combate o bom combate (6.12):</strong> A vida cristã é luta diária contra o pecado, contra a ganância e tentações (resistir ao jeitinho e à desonestidade).</p>
+            <p><strong>2. Amor ao dinheiro (6.10):</strong> Não é o dinheiro, é o AMOR ao dinheiro. Esse amor gera ansiedade, afastamento de Deus e sofrimento.</p>
+            <div class="app-box">
+                📌 <strong>Frase de Impacto:</strong> "O dinheiro é um ótimo servo, mas um péssimo senhor."
+            </div>
+            <div class="question-box">
+                👉 <strong>Como saber se alguém ama o dinheiro?</strong>
+                <div class="suggested-answers">1. Vive só por isso. / 2. Coloca acima de Deus.</div>
+            </div>
+
+            <p><strong>3. Combate o bom combate (6.12):</strong> A vida cristã é luta diária contra o pecado, a ganância e as tentações.</p>
+            <div class="example-box">💡 <strong>Aplicação:</strong> Resistir ao dinheiro fácil, ao jeitinho, à desonestidade.</div>
+            <div class="question-box">
+                👉 <strong>Qual luta você enfrenta hoje na sua vida espiritual?</strong>
+                <div class="suggested-answers">1. Ansiedade financeira. / 2. Desejo por mais.</div>
+            </div>
         </div>
     </div>
 
-    <div class="card c-green" onclick="handleCardClick(this)">
+    <!-- TÓPICO III -->
+    <div class="card c-yel" onclick="handleCardClick(this)">
         <div class="card-header">
-            <span class="card-title">🟩 III. Fiel até Jesus Voltar (6.13–21)</span>
-            <i class="fa-solid fa-chevron-down"></i>
+            <span class="card-title">🟨 III. FIEL ATÉ JESUS VOLTAR (6.13–21)</span>
         </div>
         <div class="card-body">
-            <p><strong>1. Viva preparado (6.14-15):</strong> Jesus vai voltar, e isso muda nossa forma de viver. Quem espera Jesus vive com propósito, não só por dinheiro.</p>
-            
-            <p><strong>2. Ricos aqui e no céu (6.17):</strong> Pode ter dinheiro, mas não depender dele. O foco é confiar em Deus e ser generoso (ajudar, repartir, investir no Reino).</p>
-
+            <p><strong>1. Viva preparado (6.14-15):</strong> Jesus vai voltar. Isso muda nossa forma de viver. Quem espera Jesus vive com propósito, não só por dinheiro.</p>
             <div class="question-box">
-                <strong>❓ Pergunta Interativa:</strong>
-                Como podemos usar o dinheiro de forma correta?
-                <div class="suggested-answers">
-                    1. Ajudando pessoas.<br>
-                    2. Investindo na obra de Deus.
-                </div>
+                👉 <strong>Se Jesus voltasse hoje, sua vida estaria alinhada?</strong>
+            </div>
+
+            <p><strong>2. Ricos aqui e no céu (6.17):</strong> Pode ter dinheiro, mas não depender dele. O foco é confiar em Deus e ser generoso.</p>
+            <div class="example-box">💡 <strong>Exemplo Atual:</strong> Pessoa rica espiritualmente: ajuda, reparte, investe no Reino.</div>
+            <div class="question-box">
+                👉 <strong>Como podemos usar o dinheiro de forma correta?</strong>
+                <div class="suggested-answers">1. Ajudando pessoas. / 2. Investindo na obra de Deus.</div>
             </div>
 
             <p><strong>3. Guarda o que Deus te deu (6.20):</strong> Proteja sua fé! Evite discussões inúteis e enganos, permaneça firme.</p>
-            
             <div class="app-box">
-                👉 <strong>Frase Forte:</strong> “Não perca a fé tentando ganhar o mundo.”
+                📌 <strong>Frase Forte:</strong> "Não perca a fé tentando ganhar o mundo."
+            </div>
+            <div class="question-box">
+                👉 <strong>O que pode enfraquecer nossa fé hoje?</strong>
+                <div class="suggested-answers">1. Influências erradas. / 2. Prioridades invertidas.</div>
             </div>
         </div>
     </div>
 
+    <!-- CONCLUSÃO E DINÂMICA -->
     <div class="card c-special" onclick="handleCardClick(this)">
         <div class="card-header">
-            <span class="card-title">🎯 Conclusão e Aplicação Prática</span>
-            <i class="fa-solid fa-chevron-down"></i>
+            <span class="card-title">🎯 Conclusão e Dinâmica Final</span>
         </div>
         <div class="card-body">
-            <p><strong>3 Verdades:</strong> Tenha um bom testemunho, Não ame o dinheiro, Permaneça fiel até o fim.</p>
+            <p><strong>As 3 Verdades do Capítulo:</strong><br> ✔ Tenha um bom testemunho<br> ✔ Não ame o dinheiro<br> ✔ Permaneça fiel até o fim</p>
             
-            <div class="illustration-box">
-                🎭 <strong>Dinâmica Rápida:</strong> Peça para todos completarem: “Se eu tivesse muito dinheiro, eu _______”.<br>
-                <em>Finalize: "O problema não é ter dinheiro… é o dinheiro ter você."</em>
+            <div class="example-box">
+                <strong>📌 Dinâmica de Encerramento:</strong><br>
+                Peça para todos completarem em voz alta:<br>
+                “Se eu tivesse muito dinheiro, eu _______”<br><br>
+                Depois finalize: <strong>“O problema não é ter dinheiro… é o dinheiro ter você.”</strong><br><br>
+                🔥 <strong>Frase Final Forte:</strong> “Quem corre atrás do dinheiro perde a paz. Quem corre atrás de Deus encontra tudo que precisa.”
             </div>
 
-            <div class="question-box" style="border-left-color: var(--accent);">
-                <strong>📌 Responda (Checklist):</strong>
-                1. Erro dos servos? (Usavam a fé como desculpa para desobedecer).<br>
-                2. Quando riqueza é correta? (Quando vem de Deus e do trabalho honesto).<br>
-                3. Para que serve o dinheiro? (Para ajudar, repartir e glorificar a Deus).
+            <div class="app-box">
+                <strong>📝 Responda (Fixação):</strong><br>
+                1. Erro dos servos? <em>Usavam a fé como desculpa para desobedecer.</em><br>
+                2. Quando riqueza é correta? <em>Quando vem de Deus e do trabalho honesto.</em><br>
+                3. Para que serve o dinheiro? <em>Para ajudar, repartir e glorificar a Deus.</em>
             </div>
-            
-            <p style="text-align: center; font-size: 1.1rem; font-weight: 700; margin-top: 20px; color: var(--secondary);">
-                🔥 “Quem corre atrás do dinheiro perde a paz. <br>Quem corre atrás de Deus encontra tudo que precisa.”
-            </p>
         </div>
     </div>
 
 </div>
 
 <footer>
-    Professor, Deus abençoe sua ministração! <br>
-    Painel Interativo EBD • 1 Timóteo 6 • Desenvolvido para Mobile
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Estudo 6
 </footer>
 
 <script>
-    // CORE INTERACTIVE LOGIC
     function handleCardClick(card) {
         if (card.classList.contains('active')) {
             card.classList.remove('active');
