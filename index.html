@@ -154,6 +154,25 @@
             .controls-container { flex-direction: column; align-items: stretch; }
             .filters { flex-direction: column; }
         }
+        
+        /* --- MODAL PADRÃO OURO --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: var(--card-bg); padding: 25px 30px; border-radius: 12px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(-20px); transition: transform 0.3s ease;
+            max-width: 400px; width: 90%;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-btn {
+            margin-top: 20px; padding: 10px 25px; background: var(--accent); color: white; font-weight: bold;
+            border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;
+        }
+        .modal-btn:hover { background: #2980b9; }
     </style>
 </head>
 <body>
@@ -194,108 +213,151 @@
     <div class="grid-aulas" id="gridAulas">
         <!-- Aulas geradas pelo JavaScript -->
     </div>
-
-    <script>
-        // 1. BASE DE DADOS DAS AULAS
-        // Para adicionar uma aula nova, basta colocar aqui.
-        // O sistema gera o link automaticamente no padrão aulaDDMMAAAA.html
-        const cronograma = [
-            // Aulas de Maio de 2026 (Período Atual como Exemplo)
-            { id: "01", livro: "1 Timóteo 1", tema: "A Missão do Pastor Timóteo", data: "03/05/2026", disponivel: true },
-            { id: "02", livro: "1 Timóteo 2", tema: "A Oração e o Comportamento", data: "10/05/2026", disponivel: true },
-            { id: "03", livro: "1 Timóteo 3", tema: "A Igreja, seus Pastores e Diáconos", data: "17/05/2026", disponivel: true },
-            { id: "04", livro: "1 Timóteo 4", tema: "Alerta contra a Apostasia", data: "24/05/2026", disponivel: false },
-            { id: "05", livro: "1 Timóteo 5", tema: "Cuidando Bem das Diferentes Gerações", data: "31/05/2026", disponivel: false },
-            
-            // Aulas Anteriores (Exemplo Abril)
-            { id: "13", livro: "Ezequiel 47", tema: "O rio da vida", data: "26/04/2026", disponivel: true },
-            { id: "12", livro: "Ezequiel 40", tema: "A glória do Senhor voltando", data: "19/04/2026", disponivel: true }
-        ];
-
-        // 2. FUNÇÃO PARA GERAR O NOME DO ARQUIVO (aulaDDMMAAAA.html)
-        function gerarNomeArquivo(dataString) {
-            // Pega "03/05/2026" e transforma em "aula03052026.html"
-            const partes = dataString.split('/');
-            return `aula${partes[0]}${partes[1]}${partes[2]}.html`;
+    <!-- Modal de Feedback (Optimistic UI) -->
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-top:0; color: var(--primary);">Atenção</h3>
+            <p id="modalMessage" style="color: #555; line-height: 1.4;"></p>
+            <button class="modal-btn" onclick="fecharModal()">Entendi</button>
+        </div>
+    </div>
+<script>
+        // --- SISTEMA DE FEEDBACK (MODAL) ---
+        function mostrarModal(titulo, mensagem) {
+            document.getElementById('modalTitle').innerText = titulo;
+            document.getElementById('modalMessage').innerText = mensagem;
+            document.getElementById('feedbackModal').classList.add('active');
         }
 
-        // 3. INICIALIZAÇÃO INTELIGENTE (Pega a data atual do usuário)
-        function configurarFiltroInicial() {
+        function fecharModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+        }
+
+        // --- SCANNER AUTOMÁTICO DE DIRETÓRIO ---
+        async function scanDiretorio() {
+            const grid = document.getElementById('gridAulas');
+            const mesSelecionado = document.getElementById('monthSelect').value;
+            const anoSelecionado = document.getElementById('yearSelect').value;
+
+            if (mesSelecionado === 'all' || anoSelecionado === 'all') {
+                mostrarModal('Filtro Necessário', 'Para evitar sobrecarga no servidor, por favor, selecione um Mês e um Ano específicos para a busca.');
+                grid.innerHTML = '';
+                return;
+            }
+
+            // Optimistic UI: Mostra o status de carregamento antes da resposta do servidor
+            grid.innerHTML = '<div class="no-results">🔍 Escaneando servidor... Procurando aulas publicadas em ' + mesSelecionado + '/' + anoSelecionado + '</div>';
+
+            const diasNoMes = new Date(anoSelecionado, parseInt(mesSelecionado), 0).getDate();
+            let aulasEncontradas = [];
+            const promessas = [];
+
+            // Dispara 31 requisições simultâneas silenciosas para encontrar os arquivos
+            for (let dia = 1; dia <= diasNoMes; dia++) {
+                const diaFormatado = String(dia).padStart(2, '0');
+                const nomeArquivo = `aula${diaFormatado}${mesSelecionado}${anoSelecionado}.html`;
+
+                // Faz um FETCH local para ver se o arquivo HTML existe
+                promessas.push(
+                    fetch(nomeArquivo, { method: 'GET' })
+                    .then(async response => {
+                        if (response.ok) {
+                            const htmlText = await response.text();
+                            
+                            // Analisador Inteligente: Lê o arquivo HTML oculto e extrai as informações
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(htmlText, 'text/html');
+
+                            let titulo = "Estudo EBD";
+                            let tema = "Tema Indisponível";
+
+                            // Puxa as informações baseadas na estrutura HTML da sua aula
+                            const h2 = doc.querySelector('.header-box h2');
+                            const small = doc.querySelector('.header-box small');
+
+                            if (h2) titulo = h2.innerText;
+                            if (small) tema = small.innerText;
+
+                            aulasEncontradas.push({
+                                data: `${diaFormatado}/${mesSelecionado}/${anoSelecionado}`,
+                                arquivo: nomeArquivo,
+                                titulo: titulo,
+                                tema: tema
+                            });
+                        }
+                    })
+                    .catch(() => { /* Arquivo não existe no GitHub (Erro 404 normal, é ignorado silenciosamente) */ })
+                );
+            }
+
+            // Aguarda todas as verificações terminarem
+            await Promise.all(promessas);
+
+            // Renderiza o resultado na tela
+            grid.innerHTML = '';
+
+            if (aulasEncontradas.length === 0) {
+                grid.innerHTML = `<div class="no-results">Nenhum arquivo de aula encontrado no servidor para ${mesSelecionado}/${anoSelecionado}.<br><small>Certifique-se de que o arquivo "aulaDDMMAAAA.html" foi feito o upload no GitHub.</small></div>`;
+                return;
+            }
+
+            // Ordena as aulas encontradas pela data
+            aulasEncontradas.sort((a, b) => a.data.localeCompare(b.data));
+
+            aulasEncontradas.forEach(aula => {
+                const card = document.createElement('a');
+                card.href = aula.arquivo;
+                card.className = `card-aula disponivel`;
+                // Guarda os dados no atributo para o campo de busca de texto
+                card.setAttribute('data-search', `${aula.titulo} ${aula.tema} ${aula.data}`.toLowerCase());
+
+                card.innerHTML = `
+                    <div class="status-badge">🟢 Publicada</div>
+                    <div class="aula-data">📅 ${aula.data}</div>
+                    <div class="aula-titulo">${aula.titulo}</div>
+                    <div class="aula-tema">${aula.tema}</div>
+                    <div class="aula-link">Arquivo fonte: ${aula.arquivo}</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Caso o usuário já tenha algo digitado na busca, filtra o resultado recém-chegado
+            filtrarTexto();
+        }
+
+        // --- FILTRO DE TEXTO EM TEMPO REAL ---
+        function filtrarTexto() {
+            const termoBusca = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.card-aula');
+
+            cards.forEach(card => {
+                const content = card.getAttribute('data-search');
+                card.style.display = content.includes(termoBusca) ? "flex" : "none";
+            });
+        }
+
+        // --- INICIALIZAÇÃO INTELIGENTE ---
+        function configurarPainel() {
             const dataAtual = new Date();
-            // getMonth() retorna de 0 a 11. Somamos 1 e formatamos com zero à esquerda (ex: "05")
             const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
             const anoAtual = String(dataAtual.getFullYear());
 
             document.getElementById('monthSelect').value = mesAtual;
-            
-            // Verifica se o ano atual existe no select, senão deixa em "all"
             const yearSelect = document.getElementById('yearSelect');
             if ([...yearSelect.options].some(opt => opt.value === anoAtual)) {
                 yearSelect.value = anoAtual;
             }
 
-            filtrarAulas();
+            // Associa os gatilhos corretamente
+            document.getElementById('monthSelect').onchange = scanDiretorio;
+            document.getElementById('yearSelect').onchange = scanDiretorio;
+            document.getElementById('searchInput').oninput = filtrarTexto;
+
+            // Inicia o scan do mês atual automaticamente
+            scanDiretorio();
         }
 
-        // 4. LÓGICA DE FILTRAGEM E RENDERIZAÇÃO
-        function filtrarAulas() {
-            const termoBusca = document.getElementById('searchInput').value.toLowerCase();
-            const mesSelecionado = document.getElementById('monthSelect').value;
-            const anoSelecionado = document.getElementById('yearSelect').value;
-
-            const grid = document.getElementById('gridAulas');
-            grid.innerHTML = ""; // Limpa a tela
-
-            // Filtra o array
-            const aulasFiltradas = cronograma.filter(aula => {
-                const partesData = aula.data.split('/'); // [DD, MM, AAAA]
-                const mesAula = partesData[1];
-                const anoAula = partesData[2];
-
-                // Regras de filtro
-                const bateBusca = aula.tema.toLowerCase().includes(termoBusca) || 
-                                  aula.livro.toLowerCase().includes(termoBusca) || 
-                                  aula.data.includes(termoBusca);
-                
-                const bateMes = mesSelecionado === 'all' || mesSelecionado === mesAula;
-                const bateAno = anoSelecionado === 'all' || anoSelecionado === anoAula;
-
-                return bateBusca && bateMes && bateAno;
-            });
-
-            // Ordena por data (opcional, aqui mantemos a ordem do array)
-            
-            // Renderiza na tela
-            if (aulasFiltradas.length === 0) {
-                grid.innerHTML = `<div class="no-results">Nenhuma aula encontrada para este período ou busca.</div>`;
-                return;
-            }
-
-            aulasFiltradas.forEach(aula => {
-                const nomeArquivo = gerarNomeArquivo(aula.data);
-                const baseUrl = window.location.pathname.includes('ebd_aulas') ? '' : 'ebd_aulas/';
-                const linkFinal = aula.disponivel ? `${baseUrl}${nomeArquivo}` : '#';
-                
-                const classeStatus = aula.disponivel ? 'disponivel' : 'pendente';
-                const textoStatus = aula.disponivel ? '🟢 Disponível' : '⏳ Em Breve';
-
-                const card = document.createElement('a');
-                card.href = linkFinal;
-                card.className = `card-aula ${classeStatus}`;
-
-                card.innerHTML = `
-                    <div class="status-badge">${textoStatus}</div>
-                    <div class="aula-data">📅 ${aula.data}</div>
-                    <div class="aula-titulo">Estudo ${aula.id} | ${aula.livro}</div>
-                    <div class="aula-tema">${aula.tema}</div>
-                    <div class="aula-link">Arquivo: ${nomeArquivo}</div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // Inicia o painel rodando as funções
-        window.onload = configurarFiltroInicial;
+        window.onload = configurarPainel;
 
     </script>
 </body>
