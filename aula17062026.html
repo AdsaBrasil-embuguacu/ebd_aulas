@@ -1,1 +1,399 @@
-read
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel EBD - Estudo 7: Reaviva o Dom Que Há Em Ti</title>
+    <style>
+        :root {
+            --primary: #1e272e; /* Azul Marinho Escuro */
+            --accent: #e67e22;  /* Laranja Fogo */
+            --bg: #f4f6f7;
+            --text: #2f3542;
+            --completed: #bdc3c7;
+            --white: #ffffff;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de Progresso Superior */
+        .progress-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .bar-container {
+            width: 90%;
+            background: #e0e0e0;
+            height: 15px;
+            border-radius: 10px;
+            margin: 5px auto;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f39c12, #e67e22, #d35400);
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Container Principal */
+        .main-container {
+            width: 95%;
+            max-width: 700px;
+            margin-top: 85px;
+            margin-bottom: 40px;
+        }
+
+        .header-box {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        /* Cards Estilizados */
+        .card {
+            background: var(--white);
+            margin-bottom: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 6px solid #ccc;
+        }
+
+        .card.active { border-left-width: 10px; transform: scale(1.01); }
+        .card.done { 
+            background: #f9f9f9; 
+            border-left-color: var(--completed) !important;
+        }
+        .card.done .card-title { 
+            text-decoration: line-through; 
+            color: #95a5a6; 
+        }
+
+        .card-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .card-body {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .card.active .card-body { display: block; }
+
+        /* Estilos Internos */
+        .bible-verse {
+            background: #fff9c4;
+            padding: 12px;
+            border-radius: 6px;
+            font-style: italic;
+            border-left: 3px solid #fbc02d;
+            margin: 10px 0;
+        }
+
+        .app-box {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #4caf50;
+            font-size: 0.95rem;
+        }
+
+        .example-box {
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #747d8c;
+            font-size: 0.9rem;
+            color: #2f3542;
+        }
+        
+        .fire-box {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 3px solid #e67e22;
+            font-size: 0.95rem;
+        }
+
+        .question-box {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed #2980b9;
+        }
+
+        .suggested-answers {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .quotes {
+            font-weight: bold;
+            color: #d35400;
+            text-align: center;
+            font-style: italic;
+            margin: 15px 0;
+        }
+
+        /* Cores das Bordas por Bloco */
+        .c-intro { border-left-color: #9b59b6; }
+        .c-blu { border-left-color: #3498db; }
+        .c-red { border-left-color: #e74c3c; }
+        .c-gre { border-left-color: #2ecc71; }
+        .c-special { border-left-color: var(--accent); }
+
+        footer { margin-top: 20px; color: #7f8c8d; font-size: 0.8rem; text-align: center; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="progress-header">
+    <div class="progress-info">Progresso da Aula: <span id="percent">0%</span></div>
+    <div class="bar-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header-box">
+        <h2 style="margin:0">ESTUDO 7 — 2 TIMÓTEO 1</h2>
+        <small>✨ REAVIVA O DOM QUE HÁ EM TI</small>
+    </div>
+
+    <!-- LEITURA E INTRODUÇÃO -->
+    <div class="card c-intro" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">📖 Texto Áureo e Introdução</span>
+        </div>
+        <div class="card-body">
+            <p><strong>📌 LEITURA BÍBLICA:</strong> 2 Timóteo 1.1-18</p>
+            
+            <div class="bible-verse">
+                <strong>🗝️ TEXTO ÁUREO:</strong><br>
+                “Por esta razão, pois, te admoesto que reavives o dom de Deus que há em ti pela imposição das minhas mãos.” (2Tm 1.6)
+            </div>
+            
+            <div class="app-box">
+                <strong>✅ VERDADE PRÁTICA:</strong><br>
+                O Evangelho é um depósito inesgotável de fé que Deus nos confiou para transmitir às próximas gerações.
+            </div>
+            
+            <p><strong>🎯 INTRODUÇÃO</strong><br>
+            A segunda carta a Timóteo é uma das mensagens mais emocionantes de Paulo. Preso e próximo da morte, sua preocupação não era consigo, mas com o futuro da Igreja. Paulo ensina que: dons precisam ser reavivados; a fé transmitida; e o Evangelho guardado com coragem. Hoje muitos começam animados, mas esfriam. A carta é atual!</p>
+            
+            <div class="fire-box">
+                <strong>❄️ DINÂMICA INICIAL — “FOGO APAGANDO”</strong><br>
+                <strong>🎯 Objetivo:</strong> Mostrar que tudo aquilo que não é alimentado vai esfriando.<br>
+                <strong>🧰 Material:</strong> Uma vela (ou lanterna celular) e um copo.<br>
+                <strong>▶️ Como fazer:</strong> Acenda a vela e pergunte: "O que acontece se eu cobrir a chama?". Cubra com o copo até apagar. Depois pergunte: "O fogo acabou de uma vez ou foi apagando aos poucos?"<br><br>
+                <em>Conecte com a aula: "Muitos não abandonam Jesus de uma vez. Eles apenas param de alimentar a fé." (Leia 2Tm 1.6)</em>
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO I -->
+    <div class="card c-blu" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟦 I. 🔥 FÉ QUE HABITA EM TI (1.1-7)</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. 👨‍👦 Ao amado filho Timóteo (1.2):</strong> Mostra relacionamento, cuidado e discipulado. Hoje há informação bíblica, mas falta acompanhamento.</p>
+            <p><em>A fé cresce melhor com: exemplo, cuidado, proximidade e discipulado.</em></p>
+            <div class="example-box">
+                📌 <strong>Exemplo Atual:</strong> Jovem recém-convertido cheio de dúvidas. Sem orientação, é influenciado por redes sociais, falsas doutrinas, amizades erradas e desânimo.
+            </div>
+
+            <p><strong>2. 🙏 Oração e saudade (1.3-4):</strong> “me lembro de ti nas minhas orações noite e dia”. Hoje muitos curtem e seguem, mas poucos oram de verdade.</p>
+            <div class="app-box">
+                📌 <strong>Aplicação:</strong> Uma igreja forte não vive apenas de culto. Ela vive de oração, cuidado e comunhão.
+            </div>
+
+            <p><strong>3. 🏠 A fé de Loide e Eunice (1.5):</strong> A fé passou da avó, para a mãe, para Timóteo. O poder da influência espiritual em casa.</p>
+            <div class="example-box">
+                📌 <strong>Exemplo Atual:</strong> Filhos aprendem séries, memes, trends... mas nunca aprenderam a orar, ler a Bíblia e fazer culto doméstico.
+            </div>
+            
+            <div class="question-box">
+                💬 <strong>PERGUNTA INTERATIVA:</strong> O que mais influencia um jovem hoje: a família ou a internet?
+                <div class="suggested-answers">
+                    ✔ A internet influencia mais quando a família se afasta espiritualmente.<br>
+                    ✔ A família ainda é a maior influência quando vive o Evangelho de verdade.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO II -->
+    <div class="card c-red" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟥 II. 🔥 REAVIVA O DOM QUE HÁ EM TI (1.6-11)</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. 🔥 O dom precisa ser alimentado (1.6):</strong> Paulo não disse “receba um novo dom”, ele disse “reavive” (reacender, alimentar, renovar).</p>
+            <div class="example-box">
+                📌 <strong>EXEMPLOS DE DONS “ESFRIANDO”:</strong><br>
+                🎤 <strong>Louvor:</strong> Tinha paixão... Hoje canta sem entrega.<br>
+                🙏 <strong>Oração:</strong> Antes orava diariamente... Hoje só no culto.<br>
+                📖 <strong>Palavra:</strong> Antes evangelizava... Hoje sente vergonha.<br>
+                ⛪ <strong>Ministério:</strong> Servia com alegria... Hoje faz por obrigação.
+            </div>
+
+            <p><strong>2. 💪 Espírito de poder, amor e moderação (1.7):</strong><br>
+            ❌ Deus NÃO deu: covardia, medo, vergonha.<br>
+            ✅ Deus deu: <strong>Poder</strong> (Coragem), <strong>Amor</strong> (Servir sem orgulho), <strong>Moderação</strong> (Equilíbrio).</p>
+            <div class="example-box">
+                📌 <strong>Exemplo Atual:</strong> Muitos vivem ansiosos, descontrolados, frios e dominados pela opinião alheia. "Você não foi chamado para viver dominado pelo medo."
+            </div>
+
+            <p><strong>3. ⛓️ Sofrer pelo Evangelho (1.8):</strong> Paulo estava preso, mas não envergonhado. Muitos escondem a fé na escola, trabalho e internet.</p>
+            <div class="example-box">
+                📌 <strong>Exemplo Atual:</strong> Vergonha de postar algo cristão; de orar em público; de dizer "não" ao pecado.
+            </div>
+
+            <div class="fire-box">
+                🎯 <strong>DINÂMICA RÁPIDA — “O QUE APAGA A FÉ?”</strong><br>
+                Peça à classe para falar coisas que fazem alguém esfriar (Escreva: distrações, pecado, falta de oração, redes sociais, mágoas).<br>
+                Depois pergunte: <em>“E o que reacende a chama?”</em> (oração, jejum, Palavra, comunhão, servir, presença de Deus).
+            </div>
+        </div>
+    </div>
+
+    <!-- TÓPICO III -->
+    <div class="card c-gre" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🟩 III. 🛡️ GUARDA O BOM DEPÓSITO (1.12-18)</span>
+        </div>
+        <div class="card-body">
+            <p><strong>1. 📦 O depósito de Paulo (1.12):</strong> "sei em quem tenho crido". A fé não estava em emoções, pessoas, status ou dinheiro, mas em Cristo.</p>
+            
+            <p><strong>2. 📖 Guarda o Evangelho (1.13-14):</strong> É um depósito precioso. Hoje existem "evangelhos modernos" sem arrependimento, sem santidade, sem cruz e sem renúncia. Proteja a verdade!</p>
+
+            <p><strong>3. 🤝 Onesíforo: exemplo de fidelidade (1.15-18):</strong> Enquanto muitos abandonaram Paulo, ele permaneceu fiel.</p>
+            <div class="app-box">
+                📌 <strong>Aplicação Atual:</strong> É fácil estar perto no sucesso e na fama. Os verdadeiros aparecem na luta, dor e perseguição.
+            </div>
+        </div>
+    </div>
+
+    <!-- CONCLUSÃO E APLICAÇÃO -->
+    <div class="card c-special" onclick="handleCardClick(this)">
+        <div class="card-header">
+            <span class="card-title">🎯 Conclusão, Perguntas e Respostas</span>
+        </div>
+        <div class="card-body">
+            <div class="example-box">
+                🧠 <strong>EXEMPLOS ATUAIS DE “ESFRIAMENTO ESPIRITUAL”</strong>
+                <ul>
+                    <li>Crente que antes orava e hoje só assiste vídeos.</li>
+                    <li>Jovem que trocou Bíblia por entretenimento.</li>
+                    <li>Crente que conhece versículos, mas perdeu intimidade com Deus.</li>
+                    <li>Líder que trabalha muito, mas ora pouco.</li>
+                </ul>
+            </div>
+
+            <div class="app-box">
+                🎯 <strong>APLICAÇÃO PESSOAL</strong><br>
+                Deus não apagou o chamado que colocou em você. Talvez a chama diminuiu, o ânimo esfriou... Mas hoje o Espírito Santo nos lembra: <strong>“REAVIVA O DOM QUE HÁ EM TI.”</strong> O fogo ainda pode voltar a queimar!
+            </div>
+
+            <div class="question-box">
+                ❓ <strong>PERGUNTAS PARA INTERAÇÃO (e respostas):</strong><br>
+                <strong>1. O que mais esfria espiritualmente um cristão hoje?</strong><br>
+                <em>R: Ensino da Palavra e culto doméstico. (Refere-se à falta disto ou à resposta 1 do guia).</em><br><br>
+                <strong>2. Como podemos “reavivar” o dom de Deus?</strong><br>
+                <em>R: Com poder, amor e moderação.</em><br><br>
+                <strong>3. Qual a importância da família na formação espiritual?</strong><br>
+                <em>(Discussão aberta na classe com base no Tópico I).</em><br><br>
+                <strong>4. O que significa guardar o “bom depósito”?</strong><br>
+                <em>R: Mantê-lo, guardá-lo e transmiti-lo a outros.</em>
+            </div>
+
+            <div class="quotes">
+                🔥 “O fogo que não é alimentado se apaga.”<br><br>
+                🔥 “Uma geração sem discipulado será uma geração sem firmeza.”<br><br>
+                🔥 “Deus não nos chamou para esconder a fé, mas para viver o Evangelho com coragem.”<br><br>
+                🔥 “O dom não morreu — talvez só precise ser reavivado.”
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Professor, Deus abençoe sua aula! <br>
+    Painel Interativo EBD • Estudo 7
+</footer>
+
+<script>
+    function handleCardClick(card) {
+        if (card.classList.contains('active')) {
+            card.classList.remove('active');
+            card.classList.add('done');
+        } else {
+            card.classList.add('active');
+        }
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.card');
+        const completed = document.querySelectorAll('.card.done');
+        const progressFill = document.getElementById('progress-fill');
+        const percentText = document.getElementById('percent');
+        
+        const percentage = Math.round((completed.length / cards.length) * 100);
+        
+        progressFill.style.width = percentage + '%';
+        percentText.innerText = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
